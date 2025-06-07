@@ -2,7 +2,7 @@
 [![Experimental status](https://img.shields.io/badge/Status-experimental-orange)](#)
 # Frankfurter MCP
 
-[Frankfurter](https://frankfurter.dev/) is a useful API for latest currency exchange rates, historical data, or time series published sources such as the European Central Bank. Should you need to access the Frankfurter API as tools exposed over the Model Context Protocol (MCP), Frankfurter MCP is what you need.
+[Frankfurter](https://frankfurter.dev/) is a useful API for latest currency exchange rates, historical data, or time series published by sources such as the European Central Bank. Should you need to access the Frankfurter API as tools exposed over the Model Context Protocol (MCP), Frankfurter MCP is what you need.
 
 ## Contributing
 
