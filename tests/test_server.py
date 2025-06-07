@@ -40,7 +40,7 @@ def mcp_client():
 
 @pytest.fixture(scope="session", autouse=True)
 def mcp_server_daemon():
-    print("[fixture] Starting MCP server daemon process")
+    print("[fixture] Starting MCP server process")
     proc = multiprocessing.Process(
         target=mcp_server_main,
     )
@@ -65,10 +65,12 @@ def mcp_server_daemon():
     try:
         # Check connection to the server
         if not asyncio.run(wait_for_server()):
-            raise RuntimeError("MCP server did not start in time or is not responding.")
+            raise RuntimeError(
+                "The MCP server process did not start in time or is not responding."
+            )
         yield  # Run tests now
     finally:
-        print("[fixture] Stopping MCP server daemon process")
+        print("[fixture] Stopping MCP server process")
         if proc.is_alive():
             proc.terminate()
             proc.join()
@@ -92,11 +94,33 @@ class TestMCPServer:
             self.call_tool(tool_name="get_supported_currencies", mcp_client=mcp_client)
         )
         json_result: dict = json.loads(currencies[0].text)
-        print(f"Supported currencies: {json_result}")
+        # print(f"Supported currencies: {json_result}")
         assert len(json_result.keys()) > 0, "Expected non-empty list of currencies"
         assert all(
             (isinstance(code, str) and len(code) == 3) for code in json_result.keys()
         ), "All currency codes should be 3-character strings"
+
+    def test_convert_currency_latest(self, mcp_client):
+        """
+        Test the convert_currency_latest function to ensure it returns a list of supported currencies.
+        """
+        conversion_metadata = asyncio.run(
+            self.call_tool(
+                tool_name="convert_currency_latest",
+                mcp_client=mcp_client,
+                from_currency="GBP",
+                to_currency="JPY",
+                amount=100.0,
+            )
+        )
+        json_result: dict = json.loads(conversion_metadata[0].text)
+        # print(f"Conversion metadata: {json_result}")
+        assert isinstance(json_result["converted_amount"], float), (
+            "Expected float value for converted amount"
+        )
+        assert json_result["converted_amount"] > 100.0, (
+            "The exchange rate for GBP to JPY should be greater than 1.0"
+        )
 
     def test_get_latest_exchange_rates(self, mcp_client):
         """
@@ -111,7 +135,7 @@ class TestMCPServer:
             )
         )
         json_result: dict = json.loads(currencies[0].text)
-        print(f"Latest rates: {json_result}")
+        # print(f"Latest rates: {json_result}")
         assert len(json_result["rates"].keys()) > 0, (
             "Expected non-empty list of currency rates"
         )
@@ -134,7 +158,7 @@ class TestMCPServer:
             )
         )
         json_result: dict = json.loads(currencies[0].text)
-        print(f"Historical rates: {json_result}")
+        # print(f"Historical rates: {json_result}")
         assert all(
             len(rates_for_date) > 0
             for _, rates_for_date in json_result["rates"].items()
