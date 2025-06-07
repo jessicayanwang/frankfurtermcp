@@ -1,0 +1,148 @@
+import json
+import multiprocessing
+import asyncio
+import time
+from frankfurtermcp.common import EnvironmentVariables
+from fastmcp import Client
+
+from frankfurtermcp.utils import parse_env
+from frankfurtermcp.server import main as mcp_server_main
+from dotenv import load_dotenv
+import pytest
+
+
+def _get_mcp_client():
+    load_dotenv()
+    transport_type = parse_env(
+        EnvironmentVariables.MCP_SERVER_TRANSPORT,
+        default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
+        allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
+    )
+    mcp_client = Client(
+        transport=f"http://localhost:{
+            parse_env(
+                'FASTMCP_SERVER_PORT',
+                default_value=8000,
+            )
+        }/{'mcp' if transport_type == 'streamable-http' else '/sse'}",
+        timeout=60,
+    )
+    return mcp_client
+
+
+@pytest.fixture(scope="session")
+def mcp_client():
+    """
+    Fixture to create a client for the MCP server.
+    """
+    return _get_mcp_client()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mcp_server_daemon():
+    print("[fixture] Starting MCP server daemon process")
+    proc = multiprocessing.Process(
+        target=mcp_server_main,
+    )
+    proc.start()
+
+    async def wait_for_server(timeout: float = 5.0) -> bool:
+        """
+        Wait for the MCP server to start and be ready to accept connections.
+        """
+        client = _get_mcp_client()
+        ping_result = False
+        start = time.time()
+        while (time.time() - start) < timeout and not ping_result:
+            try:
+                async with client:
+                    ping_result = await client.ping()
+            except Exception:
+                # Don't panic, give it a bit more time!
+                time.sleep(0.1)
+        return ping_result
+
+    try:
+        # Check connection to the server
+        if not asyncio.run(wait_for_server()):
+            raise RuntimeError("MCP server did not start in time or is not responding.")
+        yield  # Run tests now
+    finally:
+        print("[fixture] Stopping MCP server daemon process")
+        if proc.is_alive():
+            proc.terminate()
+            proc.join()
+
+
+class TestMCPServer:
+    async def call_tool(self, tool_name: str, mcp_client: Client, **kwargs):
+        """
+        Helper method to call a tool on the MCP server.
+        """
+        async with mcp_client:
+            result = await mcp_client.call_tool(tool_name, arguments=kwargs)
+            await mcp_client.close()
+        return result
+
+    def test_get_supported_currencies(self, mcp_client):
+        """
+        Test the get_supported_currencies function to ensure it returns a list of supported currencies.
+        """
+        currencies = asyncio.run(
+            self.call_tool(tool_name="get_supported_currencies", mcp_client=mcp_client)
+        )
+        json_result: dict = json.loads(currencies[0].text)
+        print(f"Supported currencies: {json_result}")
+        assert len(json_result.keys()) > 0, "Expected non-empty list of currencies"
+        assert all(
+            (isinstance(code, str) and len(code) == 3) for code in json_result.keys()
+        ), "All currency codes should be 3-character strings"
+
+    def test_get_latest_exchange_rates(self, mcp_client):
+        """
+        Test the get_latest_exchange_rates function to ensure that it returns the list of latest rates with other currencies.
+        """
+        currencies = asyncio.run(
+            self.call_tool(
+                tool_name="get_latest_exchange_rates",
+                mcp_client=mcp_client,
+                base_currency="JPY",
+                symbols=["EUR", "GBP", "CHF", "NZD"],
+            )
+        )
+        json_result: dict = json.loads(currencies[0].text)
+        print(f"Latest rates: {json_result}")
+        assert len(json_result["rates"].keys()) > 0, (
+            "Expected non-empty list of currency rates"
+        )
+        assert all(
+            (isinstance(code, str) and len(code) == 3)
+            for code in json_result["rates"].keys()
+        ), "All currency codes for exchange rates should be 3-character strings"
+
+    def test_get_historical_exchange_rates(self, mcp_client):
+        """
+        Test the get_historical_exchange_rates function to ensure that it returns the list of latest rates with other currencies.
+        """
+        currencies = asyncio.run(
+            self.call_tool(
+                tool_name="get_historical_exchange_rates",
+                mcp_client=mcp_client,
+                base_currency="JPY",
+                start_date="2025-06-01",
+                symbols=["EUR", "GBP", "CHF", "NZD"],
+            )
+        )
+        json_result: dict = json.loads(currencies[0].text)
+        print(f"Historical rates: {json_result}")
+        assert all(
+            len(rates_for_date) > 0
+            for _, rates_for_date in json_result["rates"].items()
+        ), "Expected non-empty list of currency rates"
+        assert all(
+            (
+                (isinstance(code, str) and len(code) == 3)
+                for code in rates_for_date.keys()
+            )
+            for _, rates_for_date in json_result["rates"].items()
+        ), "All currency codes for exchange rates should be 3-character strings"
