@@ -55,7 +55,7 @@ def main():
             allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
         ),
         uvicorn_config={
-            "timeout_graceful_shutdown": 5.0,  # seconds
+            "timeout_graceful_shutdown": 5,  # seconds
         },
     )
 
