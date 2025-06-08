@@ -8,6 +8,7 @@ from frankfurtermcp.utils import parse_env
 app = FastMCP(
     name="test_composition",
     description="This is a MCP server to test dynamic composition of MCP.",
+    tags=["frankfurtermcp", "mcp", "composition"],
 )
 
 COMPOSITION_PREFIX = "composition_"
