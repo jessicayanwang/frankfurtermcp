@@ -12,7 +12,7 @@ Following is a table of some updates regarding the project status. Note that the
 
 | Date     |  Status   |  Notes or observations   |
 |----------|:-------------:|----------------------|
-| June 8, 2025 |  active |  Added dynamic composition.<br/>**TODO**: Exception handling; outgoing proxy and self-signed certificate configuration; Dockerisation. |
+| June 8, 2025 |  active |  Added dynamic composition.<br/>**TODO**: Outgoing proxy and self-signed certificate configuration; Dockerisation. |
 | June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API. |
 | June 7, 2025 |  active |  Project started.  |
 
