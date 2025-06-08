@@ -12,7 +12,7 @@ from frankfurtermcp import package_metadata, frankfurter_api_url
 
 app = FastMCP(
     name=package_metadata["Name"],
-    description=package_metadata["Description"],
+    instructions=package_metadata["Description"],
     tags=["frankfurtermcp", "mcp", "currency-rates"],
     on_duplicate_prompts="error",
     on_duplicate_resources="error",
