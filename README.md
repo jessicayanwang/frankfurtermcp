@@ -1,5 +1,5 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=3776ab&labelColor=e4e4e4)](https://www.python.org/downloads/release/python-3120/)
-[![Experimental status](https://img.shields.io/badge/Status-experimental-orange)](#)
+[![Experimental status](https://img.shields.io/badge/Status-experimental-orange)](#) [![Dependabot Updates](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates)
 # Frankfurter MCP
 
 [Frankfurter](https://frankfurter.dev/) is a useful API for latest currency exchange rates, historical data, or time series published by sources such as the European Central Bank. Should you need to access the Frankfurter API as tools for language model agents exposed over the Model Context Protocol (MCP), Frankfurter MCP is what you need.
@@ -44,6 +44,12 @@ Run the following in the _WD_ to start the MCP server.
 
 ```bash
 uv run frankfurtermcp
+```
+
+If you want to run it without `uv`, assuming that the appropriate virtual environment has been created in the `.venv` within the _WD_, you can start the server calling the following.
+
+```bash
+./.venv/bin/python -m frankfurtermcp.server
 ```
 
 The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport. To exit the server, use the Ctrl+C key combination.
