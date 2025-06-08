@@ -188,3 +188,26 @@ class TestMCPServer:
             )
             for _, rates_for_date in json_result["rates"].items()
         ), "All currency codes for exchange rates should be 3-character strings"
+
+    def test_convert_currency_specific_date(self, mcp_client):
+        """
+        Test the convert_currency_specific_date function to ensure it returns a list of supported currencies.
+        """
+        conversion_metadata = asyncio.run(
+            self.call_tool(
+                tool_name="convert_currency_specific_date",
+                mcp_client=mcp_client,
+                from_currency="GBP",
+                to_currency="JPY",
+                amount=100.0,
+                specific_date="2025-06-01",
+            )
+        )
+        json_result: dict = json.loads(conversion_metadata[0].text)
+        print(f"Conversion metadata: {json_result}")
+        assert isinstance(json_result["converted_amount"], float), (
+            "Expected float value for converted amount"
+        )
+        assert json_result["converted_amount"] > 100.0, (
+            "The exchange rate for GBP to JPY should be greater than 1.0"
+        )

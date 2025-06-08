@@ -38,14 +38,14 @@ def main():
     Main function to run the MCP server.
     """
 
-    def sigterm_handler(signal, frame):
+    def sigint_handler(signal, frame):
         """
         Signal handler to shut down the server gracefully.
         """
         # This is absolutely necessary to exit the program
         sys.exit(0)
 
-    signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGINT, sigint_handler)
 
     app.mount(prefix=COMPOSITION_PREFIX, server=frankfurtermcp, as_proxy=False)
     app.run(
@@ -53,7 +53,10 @@ def main():
             EnvironmentVariables.MCP_SERVER_TRANSPORT,
             default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
             allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
-        )
+        ),
+        uvicorn_config={
+            "timeout_graceful_shutdown": 5.0,  # seconds
+        },
     )
 
 

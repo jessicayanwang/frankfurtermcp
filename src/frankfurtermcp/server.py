@@ -60,6 +60,48 @@ def _get_latest_exchange_rates(
         )
 
 
+def _get_historical_exchange_rates(
+    specific_date: str = None,
+    start_date: str = None,
+    end_date: str = None,
+    base_currency: str = None,
+    symbols: list[str] = None,
+) -> dict:
+    """
+    Internal function to get historical exchange rates.
+    This is a helper function for the main tool.
+    """
+    try:
+        params = {}
+        if base_currency:
+            params["base"] = base_currency
+        if symbols:
+            params["symbols"] = ",".join(symbols)
+
+        frankfurter_url = frankfurter_api_url
+        if start_date and end_date:
+            frankfurter_url += f"/{start_date}..{end_date}"
+        elif start_date:
+            # If only start_date is provided, we assume the end date is the latest available date
+            frankfurter_url += f"/{start_date}.."
+        elif specific_date:
+            # If only specific_date is provided, we assume it is the date for which we want the rates
+            frankfurter_url += f"/{specific_date}"
+        else:
+            raise ValueError(
+                "You must provide either a specific date, a start date, or a date range."
+            )
+
+        return httpx.get(
+            frankfurter_url,
+            params=params,
+        ).json()
+    except httpx.RequestError as e:
+        raise ValueError(
+            f"Failed to fetch historical exchange rates from {frankfurter_api_url}: {e}"
+        )
+
+
 @app.tool(
     description="Get latest exchange rates in specific currencies for a given base currency",
     tags=["currency-rates", "exchange-rates"],
@@ -136,39 +178,57 @@ def get_historical_exchange_rates(
     The symbols parameter can be used to filter the results to specific currencies.
     If symbols is not provided, all available currencies will be returned.
     """
-    try:
-        params = {}
-        if base_currency:
-            params["base"] = base_currency
-        if symbols:
-            params["symbols"] = ",".join(symbols)
+    return _get_historical_exchange_rates(
+        specific_date=specific_date,
+        start_date=start_date,
+        end_date=end_date,
+        base_currency=base_currency,
+        symbols=symbols,
+    )
 
-        frankfurter_url = frankfurter_api_url
-        if start_date and end_date:
-            frankfurter_url += f"/{start_date}..{end_date}"
-        elif start_date:
-            # If only start_date is provided, we assume the end date is the latest available date
-            frankfurter_url += f"/{start_date}.."
-        elif specific_date:
-            # If only specific_date is provided, we assume it is the date for which we want the rates
-            frankfurter_url += f"/{specific_date}"
-        else:
-            raise ValueError(
-                "You must provide either a specific date, a start date, or a date range."
-            )
 
-        return httpx.get(
-            frankfurter_url,
-            params=params,
-        ).json()
-    except httpx.RequestError as e:
+@app.tool(
+    description="Convert an amount from one currency to another using the exchange rates for a specific date",
+    tags=["currency-rates", "currency-conversion", "historical-exchange-rates"],
+    name="convert_currency_specific_date",
+)
+def convert_currency_specific_date(
+    amount: float,
+    from_currency: str,
+    to_currency: str,
+    specific_date: str = None,
+) -> dict:
+    """
+    Convert an amount from one currency to another using the exchange rates for a specific date.
+    The from_currency and to_currency parameters should be 3-character currency codes.
+    """
+    date_specific_rates = _get_historical_exchange_rates(
+        specific_date=specific_date,
+        base_currency=from_currency,
+        symbols=[to_currency],
+    )
+    if not date_specific_rates or "rates" not in date_specific_rates:
         raise ValueError(
-            f"Failed to fetch historical exchange rates from {frankfurter_api_url}: {e}"
+            f"Could not retrieve exchange rates for {from_currency} to {to_currency} for {specific_date}."
         )
+    rate = date_specific_rates["rates"].get(to_currency)
+    if rate is None:
+        raise ValueError(
+            f"Exchange rate for {from_currency} to {to_currency} not found."
+        )
+    converted_amount = amount * float(rate)
+    return {
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+        "amount": amount,
+        "converted_amount": converted_amount,
+        "exchange_rate": rate,
+        "rate_date": date_specific_rates["date"],
+    }
 
 
 def main():
-    def sigterm_handler(signal, frame):
+    def sigint_handler(signal, frame):
         """
         Signal handler to shut down the server gracefully.
         """
@@ -177,7 +237,7 @@ def main():
         sys.exit(0)
 
     # TODO: Should we also catch SIGTERM, SIGKILL, etc.? What about Windows?
-    signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGINT, sigint_handler)
 
     print(
         f"[green]Initiating startup[/green] of [bold]{package_metadata['Name']} {package_metadata['Version']}[/bold], [red]press CTRL+C to exit...[/red]"
@@ -188,7 +248,10 @@ def main():
             EnvironmentVariables.MCP_SERVER_TRANSPORT,
             default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
             allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
-        )
+        ),
+        uvicorn_config={
+            "timeout_graceful_shutdown": 5.0,  # seconds
+        },
     )
 
 

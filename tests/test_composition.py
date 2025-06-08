@@ -115,7 +115,7 @@ class TestMCPComposition:
         )
         print(tools)
         assert isinstance(tools, list), "Expected a list of tools"
-        assert len(tools) == 5, "Expected 5 tools to be available"
+        assert len(tools) == 6, "Expected 6 tools to be available"
         composed_tools = [
             tool for tool in tools if tool.name.startswith(COMPOSITION_PREFIX)
         ]
