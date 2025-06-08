@@ -6,7 +6,7 @@ from frankfurtermcp.common import EnvironmentVariables
 from fastmcp import Client
 
 from frankfurtermcp.utils import parse_env
-from frankfurtermcp.server import main as mcp_server_main
+from frankfurtermcp.server import main as mcp_server_composition
 from dotenv import load_dotenv
 import pytest
 
@@ -18,19 +18,34 @@ def _get_mcp_client():
         default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
         allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
     )
-    mcp_client = Client(
-        transport=f"http://localhost:{
+    transport_endpoint = None
+    if transport_type == "streamable-http":
+        transport_endpoint = f"http://localhost:{
             parse_env(
                 'FASTMCP_SERVER_PORT',
                 default_value=8000,
             )
-        }/{'mcp' if transport_type == 'streamable-http' else '/sse'}",
+        }/mcp"
+    elif transport_type == "sse":
+        transport_endpoint = f"http://localhost:{
+            parse_env(
+                'FASTMCP_SERVER_PORT',
+                default_value=8000,
+            )
+        }/sse"
+    else:
+        raise ValueError(
+            f"Unsupported transport type: {transport_type}. "
+            "Allowed values are for the test are sse and streamable-http: "
+        )
+    mcp_client = Client(
+        transport=transport_endpoint,
         timeout=60,
     )
     return mcp_client
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mcp_client():
     """
     Fixture to create a client for the MCP server.
@@ -38,11 +53,11 @@ def mcp_client():
     return _get_mcp_client()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def mcp_server_daemon():
+@pytest.fixture(scope="module", autouse=True)
+def mcp_server():
     print("[fixture] Starting MCP server process")
     proc = multiprocessing.Process(
-        target=mcp_server_main,
+        target=mcp_server_composition,
     )
     proc.start()
 
@@ -91,10 +106,13 @@ class TestMCPServer:
         Test the get_supported_currencies function to ensure it returns a list of supported currencies.
         """
         currencies = asyncio.run(
-            self.call_tool(tool_name="get_supported_currencies", mcp_client=mcp_client)
+            self.call_tool(
+                tool_name="get_supported_currencies",
+                mcp_client=mcp_client,
+            )
         )
         json_result: dict = json.loads(currencies[0].text)
-        # print(f"Supported currencies: {json_result}")
+        print(f"Supported currencies: {json_result}")
         assert len(json_result.keys()) > 0, "Expected non-empty list of currencies"
         assert all(
             (isinstance(code, str) and len(code) == 3) for code in json_result.keys()
@@ -114,7 +132,7 @@ class TestMCPServer:
             )
         )
         json_result: dict = json.loads(conversion_metadata[0].text)
-        # print(f"Conversion metadata: {json_result}")
+        print(f"Conversion metadata: {json_result}")
         assert isinstance(json_result["converted_amount"], float), (
             "Expected float value for converted amount"
         )
@@ -135,7 +153,7 @@ class TestMCPServer:
             )
         )
         json_result: dict = json.loads(currencies[0].text)
-        # print(f"Latest rates: {json_result}")
+        print(f"Latest rates: {json_result}")
         assert len(json_result["rates"].keys()) > 0, (
             "Expected non-empty list of currency rates"
         )
@@ -158,7 +176,7 @@ class TestMCPServer:
             )
         )
         json_result: dict = json.loads(currencies[0].text)
-        # print(f"Historical rates: {json_result}")
+        print(f"Historical rates: {json_result}")
         assert all(
             len(rates_for_date) > 0
             for _, rates_for_date in json_result["rates"].items()

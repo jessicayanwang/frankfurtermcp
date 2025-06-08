@@ -2,24 +2,13 @@ import signal
 import sys
 import httpx
 
-from dotenv import load_dotenv
 from fastmcp import FastMCP
 
 from rich import print as print
-from frankfurtermcp.common import AppMetadata, EnvironmentVariables, ic
+from frankfurtermcp.common import EnvironmentVariables
 from frankfurtermcp.utils import parse_env
 
-from importlib.metadata import metadata
-
-
-package_metadata = metadata(AppMetadata.PACKAGE_NAME)
-
-ic(load_dotenv())
-
-frankfurter_api_url = parse_env(
-    EnvironmentVariables.FRANKFURTER_API_URL,
-    default_value=EnvironmentVariables.DEFAULT__FRANKFURTER_API_URL,
-)
+from frankfurtermcp import package_metadata, frankfurter_api_url
 
 app = FastMCP(
     name=package_metadata["Name"],
@@ -34,6 +23,7 @@ app = FastMCP(
 @app.tool(
     description="Get supported currencies",
     tags=["currency-rates", "supported-currencies"],
+    name="get_supported_currencies",
 )
 def get_supported_currencies() -> list[str]:
     """
@@ -63,6 +53,7 @@ def _get_latest_exchange_rates(
 @app.tool(
     description="Get latest exchange rates in specific currencies for a given base currency",
     tags=["currency-rates", "exchange-rates"],
+    name="get_latest_exchange_rates",
 )
 def get_latest_exchange_rates(
     base_currency: str = None, symbols: list[str] = None
@@ -83,6 +74,7 @@ def get_latest_exchange_rates(
 @app.tool(
     description="Convert an amount from one currency to another using the latest exchange rates",
     tags=["currency-rates", "currency-conversion"],
+    name="convert_currency_latest",
 )
 def convert_currency_latest(
     amount: float,
@@ -119,6 +111,7 @@ def convert_currency_latest(
 @app.tool(
     description="Get historical exchange rates for a specific date or date range in specific currencies for a given base currency",
     tags=["currency-rates", "historical-exchange-rates"],
+    name="get_historical_exchange_rates",
 )
 def get_historical_exchange_rates(
     specific_date: str = None,
