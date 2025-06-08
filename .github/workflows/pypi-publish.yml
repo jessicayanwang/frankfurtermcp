@@ -25,6 +25,8 @@ jobs:
           uv build
 
       - name: Upload distributions
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
         run: |
-          # Requires UV_PUBLISH_TOKEN to be set
+          # Requires UV_PUBLISH_TOKEN repository secret to be set
           uv publish

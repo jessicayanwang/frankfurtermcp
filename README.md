@@ -38,9 +38,20 @@ The following environment variables can be specified, prefixed with `FASTMCP_SER
 | `MCP_SERVER_TRANSPORT` | [streamable-http] The acceptable options are `stdio`, `sse` or `streamable-http`. Given the use-case of running this MCP server as a remotely accessible endpoint, there is no real reason to choose `stdio`. |
 | `FRANKFURTER_API_URL` | [https://api.frankfurter.dev/v1] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
 
+## Usage (with `pip`)
+
+Add this package from PyPI using `pip` in a virtual environment (possibly managed by `conda` or `pyenv`) and then start the server by running the following.
+
+Add a `.env` file with the contents of the `.env.template` file if you wish to modify the default values of the aforementioned environment variables. Or, on your shell, you can export the environment variables that you wish to modify.
+
+```bash
+pip install frankfurtermcp
+python -m frankfurtermcp.server
+```
+
 ## Usage (self-hosted server using `uv`)
 
-Copy the `.env.template` file to a `.env` file in the _WD_, to modify the aforementioned environment variables, if you want to use anything other than the default settings.
+Copy the `.env.template` file to a `.env` file in the _WD_, to modify the aforementioned environment variables, if you want to use anything other than the default settings. Or, on your shell, you can export the environment variables that you wish to modify.
 
 Run the following in the _WD_ to start the MCP server.
 
@@ -53,8 +64,6 @@ If you want to run it without `uv`, assuming that the appropriate virtual enviro
 ```bash
 ./.venv/bin/python -m frankfurtermcp.server
 ```
-
-If you are installing this packag using `pip` in a virtual environment (possibly managed by `conda` or `pyenv`), then running `python -m frankfurtermcp.server` in that virtual environment.
 
 The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport. To exit the server, use the Ctrl+C key combination.
 
