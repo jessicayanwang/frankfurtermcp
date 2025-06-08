@@ -8,6 +8,9 @@ on:
     paths:
       - "**.py"
 
+permissions:
+  contents: read
+
 name: pytest
 
 jobs:
