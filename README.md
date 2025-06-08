@@ -10,7 +10,8 @@ Following is a table of some updates regarding the project status. Note that the
 
 | Date     |  Status   |  Notes or observations   |
 |----------|:-------------:|----------------------|
-| June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API.<br/>**TODO**: Exception handling; outgoing proxy and self-signed certificate configuration; Dockerisation. |
+| June 8, 2025 |  active |  Added dynamic composition.<br/>**TODO**: Exception handling; outgoing proxy and self-signed certificate configuration; Dockerisation. |
+| June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API. |
 | June 7, 2025 |  active |  Project started.  |
 
 ## Installation
@@ -33,7 +34,7 @@ The following environment variables can be specified, prefixed with `FASTMCP_SER
 | Variable |  [Default value] and description   |
 |--------------|----------------|
 | `MCP_SERVER_TRANSPORT` | [streamable-http] The acceptable options are `stdio`, `sse` or `streamable-http`. Given the use-case of running this MCP server as a remotely accessible endpoint, there is no real reason to choose `stdio`. |
-| `FRANKFURTER_API_URL` | ["https://api.frankfurter.dev/v1"] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
+| `FRANKFURTER_API_URL` | [https://api.frankfurter.dev/v1] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
 
 ## Usage (self-hosted server using `uv`)
 
