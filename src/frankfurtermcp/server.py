@@ -25,11 +25,16 @@ app = FastMCP(
     tags=["currency-rates", "supported-currencies"],
     name="get_supported_currencies",
 )
-def get_supported_currencies() -> list[str]:
+def get_supported_currencies() -> list[dict]:
     """
     Returns a list of supported currencies.
     """
-    return httpx.get(f"{frankfurter_api_url}/currencies").json()
+    try:
+        return httpx.get(f"{frankfurter_api_url}/currencies").json()
+    except httpx.RequestError as e:
+        raise ValueError(
+            f"Failed to fetch supported currencies from {frankfurter_api_url}: {e}"
+        )
 
 
 def _get_latest_exchange_rates(
@@ -39,15 +44,20 @@ def _get_latest_exchange_rates(
     Internal function to get the latest exchange rates.
     This is a helper function for the main tool.
     """
-    params = {}
-    if base_currency:
-        params["base"] = base_currency
-    if symbols:
-        params["symbols"] = ",".join(symbols)
-    return httpx.get(
-        f"{frankfurter_api_url}/latest",
-        params=params,
-    ).json()
+    try:
+        params = {}
+        if base_currency:
+            params["base"] = base_currency
+        if symbols:
+            params["symbols"] = ",".join(symbols)
+        return httpx.get(
+            f"{frankfurter_api_url}/latest",
+            params=params,
+        ).json()
+    except httpx.RequestError as e:
+        raise ValueError(
+            f"Failed to fetch latest exchange rates from {frankfurter_api_url}: {e}"
+        )
 
 
 @app.tool(
@@ -126,30 +136,35 @@ def get_historical_exchange_rates(
     The symbols parameter can be used to filter the results to specific currencies.
     If symbols is not provided, all available currencies will be returned.
     """
-    params = {}
-    if base_currency:
-        params["base"] = base_currency
-    if symbols:
-        params["symbols"] = ",".join(symbols)
+    try:
+        params = {}
+        if base_currency:
+            params["base"] = base_currency
+        if symbols:
+            params["symbols"] = ",".join(symbols)
 
-    frankfurter_url = frankfurter_api_url
-    if start_date and end_date:
-        frankfurter_url += f"/{start_date}..{end_date}"
-    elif start_date:
-        # If only start_date is provided, we assume the end date is the latest available date
-        frankfurter_url += f"/{start_date}.."
-    elif specific_date:
-        # If only specific_date is provided, we assume it is the date for which we want the rates
-        frankfurter_url += f"/{specific_date}"
-    else:
+        frankfurter_url = frankfurter_api_url
+        if start_date and end_date:
+            frankfurter_url += f"/{start_date}..{end_date}"
+        elif start_date:
+            # If only start_date is provided, we assume the end date is the latest available date
+            frankfurter_url += f"/{start_date}.."
+        elif specific_date:
+            # If only specific_date is provided, we assume it is the date for which we want the rates
+            frankfurter_url += f"/{specific_date}"
+        else:
+            raise ValueError(
+                "You must provide either a specific date, a start date, or a date range."
+            )
+
+        return httpx.get(
+            frankfurter_url,
+            params=params,
+        ).json()
+    except httpx.RequestError as e:
         raise ValueError(
-            "You must provide either a specific date, a start date, or a date range."
+            f"Failed to fetch historical exchange rates from {frankfurter_api_url}: {e}"
         )
-
-    return httpx.get(
-        frankfurter_url,
-        params=params,
-    ).json()
 
 
 def main():

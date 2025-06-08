@@ -54,6 +54,8 @@ If you want to run it without `uv`, assuming that the appropriate virtual enviro
 ./.venv/bin/python -m frankfurtermcp.server
 ```
 
+If you are installing this packag using `pip` in a virtual environment (possibly managed by `conda` or `pyenv`), then running `python -m frankfurtermcp.server` in that virtual environment.
+
 The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport. To exit the server, use the Ctrl+C key combination.
 
 ## Usage (self-hosted server using Docker)

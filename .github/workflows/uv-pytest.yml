@@ -1,4 +1,4 @@
-on: 
+on:
   push:
     branches: [master]
     paths:
@@ -28,4 +28,4 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Run tests using pytest
-        run: uv run --group test pytest -q tests/
+        run: uv run --group test pytest tests/
