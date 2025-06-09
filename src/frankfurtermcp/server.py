@@ -1,6 +1,9 @@
+import os
 import signal
 import sys
+import certifi
 import httpx
+import ssl
 
 from fastmcp import FastMCP
 
@@ -20,6 +23,36 @@ app = FastMCP(
 )
 
 
+def _obtain_httpx_client() -> httpx.Client:
+    """
+    Obtain an HTTPX client for making requests to the Frankfurter API.
+    """
+    verify = parse_env(
+        EnvironmentVariables.HTTPX_VERIFY_SSL,
+        default_value=EnvironmentVariables.DEFAULT__HTTPX_VERIFY_SSL,
+        type_cast=bool,
+    )
+    if verify is False:
+        print(
+            "[yellow]SSL verification is disabled. This is not recommended for production use.[/yellow]"
+        )
+    ctx = ssl.create_default_context(
+        cafile=os.environ.get("SSL_CERT_FILE", certifi.where()),
+        capath=os.environ.get("SSL_CERT_DIR"),
+    )
+    client = httpx.Client(
+        verify=verify if (verify is not None and verify is False) else ctx,
+        follow_redirects=True,
+        trust_env=True,
+        timeout=parse_env(
+            EnvironmentVariables.HTTPX_TIMEOUT,
+            default_value=EnvironmentVariables.DEFAULT__HTTPX_TIMEOUT,
+            type_cast=float,
+        ),
+    )
+    return client
+
+
 @app.tool(
     description="Get supported currencies",
     tags=["currency-rates", "supported-currencies"],
@@ -30,11 +63,16 @@ def get_supported_currencies() -> list[dict]:
     Returns a list of supported currencies.
     """
     try:
-        return httpx.get(f"{frankfurter_api_url}/currencies").json()
+        with _obtain_httpx_client() as client:
+            result = client.get(f"{frankfurter_api_url}/currencies").json()
+            client.close()
+            return result
     except httpx.RequestError as e:
         raise ValueError(
             f"Failed to fetch supported currencies from {frankfurter_api_url}: {e}"
         )
+    except ValueError as e:
+        raise ValueError(f"Failed to parse response from {frankfurter_api_url}: {e}")
 
 
 def _get_latest_exchange_rates(
@@ -50,14 +88,19 @@ def _get_latest_exchange_rates(
             params["base"] = base_currency
         if symbols:
             params["symbols"] = ",".join(symbols)
-        return httpx.get(
-            f"{frankfurter_api_url}/latest",
-            params=params,
-        ).json()
+        with _obtain_httpx_client() as client:
+            result = client.get(
+                f"{frankfurter_api_url}/latest",
+                params=params,
+            ).json()
+            client.close()
+            return result
     except httpx.RequestError as e:
         raise ValueError(
             f"Failed to fetch latest exchange rates from {frankfurter_api_url}: {e}"
         )
+    except ValueError as e:
+        raise ValueError(f"Failed to parse response from {frankfurter_api_url}: {e}")
 
 
 def _get_historical_exchange_rates(
@@ -92,14 +135,19 @@ def _get_historical_exchange_rates(
                 "You must provide either a specific date, a start date, or a date range."
             )
 
-        return httpx.get(
-            frankfurter_url,
-            params=params,
-        ).json()
+        with _obtain_httpx_client() as client:
+            result = client.get(
+                frankfurter_url,
+                params=params,
+            ).json()
+            client.close()
+            return result
     except httpx.RequestError as e:
         raise ValueError(
             f"Failed to fetch historical exchange rates from {frankfurter_api_url}: {e}"
         )
+    except ValueError as e:
+        raise ValueError(f"Failed to parse response from {frankfurter_api_url}: {e}")
 
 
 @app.tool(
@@ -232,6 +280,7 @@ def main():
         """
         Signal handler to shut down the server gracefully.
         """
+        # Is this handler necessary since we are not doing anything and uvicorn already handles this?
         print("[green]Attempting graceful shutdown[/green], please wait...")
         # This is absolutely necessary to exit the program
         sys.exit(0)

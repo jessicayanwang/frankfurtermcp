@@ -16,6 +16,12 @@ class EnvironmentVariables:
     FRANKFURTER_API_URL = "FRANKFURTER_API_URL"
     DEFAULT__FRANKFURTER_API_URL = "https://api.frankfurter.dev/v1"
 
+    HTTPX_TIMEOUT = "HTTPX_TIMEOUT"
+    DEFAULT__HTTPX_TIMEOUT = 5.0
+
+    HTTPX_VERIFY_SSL = "HTTPX_VERIFY_SSL"
+    DEFAULT__HTTPX_VERIFY_SSL = True
+
 
 class AppMetadata:
     """

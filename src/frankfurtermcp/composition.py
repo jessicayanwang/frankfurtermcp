@@ -42,6 +42,7 @@ def main():
         """
         Signal handler to shut down the server gracefully.
         """
+        app.unmount(prefix=COMPOSITION_PREFIX)
         # This is absolutely necessary to exit the program
         sys.exit(0)
 
