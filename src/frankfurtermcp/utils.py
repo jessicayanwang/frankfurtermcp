@@ -36,7 +36,9 @@ def parse_env(
         )
     parsed_value = None
     if type_cast is bool:
-        parsed_value = os.getenv(var_name, default_value).lower() in TRUE_VALUES_LIST
+        parsed_value = (
+            str(os.getenv(var_name, default_value)).lower() in TRUE_VALUES_LIST
+        )
     else:
         parsed_value = os.getenv(var_name, default_value)
         if allowed_values is not None:
@@ -46,9 +48,15 @@ def parse_env(
                     f"which is not in the allowed values: {allowed_values}."
                 )
 
-    value: Any | list[Any] = (
-        type_cast(parsed_value)
-        if not convert_to_list
-        else [type_cast(v) for v in parsed_value.split(list_split_char)]
-    )
+    if not convert_to_list:
+        value: Any = (
+            type_cast(parsed_value)
+            if not isinstance(parsed_value, type_cast)
+            else parsed_value
+        )
+    else:
+        value: list[Any] = [
+            (type_cast(v) if not isinstance(v, type_cast) else v)
+            for v in parsed_value.split(list_split_char)
+        ]
     return value
