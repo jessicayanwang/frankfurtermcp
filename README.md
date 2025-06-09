@@ -112,7 +112,7 @@ Upon successful build and container start, the MCP server will be available over
 
 ## Usage (dynamic mounting with FastMCP)
 
-To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/), check the file [`src/frankfurtermcp/composition.py`](blob/master/src/frankfurtermcp/composition.py).
+To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/), check the file [`src/frankfurtermcp/composition.py`](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py).
 
 ## Contributing
 
