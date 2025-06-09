@@ -12,7 +12,8 @@ Following is a table of some updates regarding the project status. Note that the
 
 | Date     |  Status   |  Notes or observations   |
 |----------|:-------------:|----------------------|
-| June 8, 2025 |  active |  Added dynamic composition.<br/>**TODO**: Dockerisation. |
+| June 9, 2025 |  active |  Added containerisation, support for self-signed, proxies. |
+| June 8, 2025 |  active |  Added dynamic composition. |
 | June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API. |
 | June 7, 2025 |  active |  Project started.  |
 
@@ -73,11 +74,45 @@ The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http
 
 ## Usage (self-hosted server using Docker)
 
-**TODO:** To be added, eventually.
+There are two Dockerfiles provided in this repository.
+
+ - `pypi.dockerfile` for using the version of `frankfurtermcp` on PyPI.
+ - `local.dockerfile` for using the latest version, which can contain your edits to the code if you do make edits.
+
+### Using the version available on PyPI
+
+To build the image, create the container and start it, run the following in _WD_. _Choose shorter names for the image and container if you prefer._
+
+```bash
+docker build -f pypi.dockerfile -t frankfurtermcp-pypi .
+docker create -p 8000:8000/tcp --name frankfurtermcp-pypi-container frankfurtermcp-pypi
+docker start frankfurtermcp-pypi-container
+```
+
+Upon successful build and container start, the MCP server will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport.
+
+### Using the local version
+
+Before containerising the local version, you must build the project distribution wheel file and ensure that only one such wheel file exists. To do so, run the following in _WD_.
+
+```bash
+rm -fR dist
+uv build
+```
+
+Once the distribution has been built, to build the Docker image, create the container and start it, run the following in _WD_. _Choose shorter names for the image and container if you prefer._
+
+```bash
+docker build -f local.dockerfile -t frankfurtermcp-local .
+docker create -p 8000:8000/tcp --name frankfurtermcp-local-container frankfurtermcp-local
+docker start frankfurtermcp-local-container
+```
+
+Upon successful build and container start, the MCP server will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport.
 
 ## Usage (dynamic mounting with FastMCP)
 
-To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/), check the file `src/frankfurtermcp/composition.py`.
+To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/), check the file [`src/frankfurtermcp/composition.py`](blob/master/src/frankfurtermcp/composition.py).
 
 ## Contributing
 
@@ -95,7 +130,7 @@ To run the provided test cases, execute the following. Add the flag `--capture=t
 _Note that for the tests to succeed, the environment variable `MCP_SERVER_TRANSPORT` must be set to either `sse` or `streamable-http`, or not set at all, in which case it will default to `streamable-http`_.
 
 ```bash
-uv run --group test pytest -q tests/
+uv run --group test pytest tests/
 ```
 
 ## License
