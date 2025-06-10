@@ -22,24 +22,23 @@ def _get_mcp_client():
         allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
     )
     transport_endpoint = None
+    fastmcp_server_host = parse_env(
+        "FASTMCP_SERVER_HOST",
+        default_value="localhost",
+    )
+    fastmcp_server_port = parse_env(
+        "FASTMCP_SERVER_PORT",
+        default_value=8000,
+        type_cast=int,
+    )
     if transport_type == "streamable-http":
-        transport_endpoint = f"http://localhost:{
-            parse_env(
-                'FASTMCP_SERVER_PORT',
-                default_value=8000,
-            )
-        }/mcp"
+        transport_endpoint = f"http://{fastmcp_server_host}:{fastmcp_server_port}/mcp"
     elif transport_type == "sse":
-        transport_endpoint = f"http://localhost:{
-            parse_env(
-                'FASTMCP_SERVER_PORT',
-                default_value=8000,
-            )
-        }/sse"
+        transport_endpoint = f"http://{fastmcp_server_host}:{fastmcp_server_port}/sse"
     else:
         raise ValueError(
             f"Unsupported transport type: {transport_type}. "
-            "Allowed values are for the test are sse and streamable-http: "
+            "Allowed values are for the test are only sse and streamable-http: "
         )
     mcp_client = Client(
         transport=transport_endpoint,
