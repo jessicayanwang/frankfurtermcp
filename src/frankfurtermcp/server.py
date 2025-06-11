@@ -1,12 +1,14 @@
 import os
 import signal
 import sys
+from typing import Annotated, List
 import certifi
 import httpx
 import ssl
 
-from fastmcp import FastMCP
+from fastmcp import FastMCP, Context
 
+from pydantic import Field
 from rich import print as print
 from frankfurtermcp.common import EnvironmentVariables
 from frankfurtermcp.utils import parse_env
@@ -16,7 +18,6 @@ from frankfurtermcp import package_metadata, frankfurter_api_url
 app = FastMCP(
     name=package_metadata["Name"],
     instructions=package_metadata["Description"],
-    tags=["frankfurtermcp", "mcp", "currency-rates"],
     on_duplicate_prompts="error",
     on_duplicate_resources="error",
     on_duplicate_tools="error",
@@ -57,13 +58,20 @@ def _obtain_httpx_client() -> httpx.Client:
     description="Get supported currencies",
     tags=["currency-rates", "supported-currencies"],
     name="get_supported_currencies",
+    annotations={
+        "readOnlyHint": True,
+        "openWorldHint": True,
+    },
 )
-def get_supported_currencies() -> list[dict]:
+def get_supported_currencies(ctx: Context) -> list[dict]:
     """
     Returns a list of supported currencies.
     """
     try:
         with _obtain_httpx_client() as client:
+            ctx.debug(
+                f"Fetching supported currencies from Frankfurter API at {frankfurter_api_url}"
+            )
             result = client.get(f"{frankfurter_api_url}/currencies").json()
             client.close()
             return result
@@ -154,9 +162,23 @@ def _get_historical_exchange_rates(
     description="Get latest exchange rates in specific currencies for a given base currency",
     tags=["currency-rates", "exchange-rates"],
     name="get_latest_exchange_rates",
+    annotations={
+        "readOnlyHint": True,
+        "openWorldHint": True,
+    },
 )
 def get_latest_exchange_rates(
-    base_currency: str = None, symbols: list[str] = None
+    ctx: Context,
+    base_currency: Annotated[
+        str,
+        Field(description="A base currency code for which rates are to be requested."),
+    ] = None,
+    symbols: Annotated[
+        List[str],
+        Field(
+            "A list of target currency codes for which rates against the base currency will be provided. Leave blank to request all supported currencies."
+        ),
+    ] = None,
 ) -> dict:
     """
     Returns the latest exchange rates for a specific currency.
@@ -165,6 +187,9 @@ def get_latest_exchange_rates(
     to specific currencies. If symbols is not provided, all
     available currencies will be returned.
     """
+    ctx.debug(
+        f"Fetching latest exchange rates from Frankfurter API at {frankfurter_api_url}"
+    )
     return _get_latest_exchange_rates(
         base_currency=base_currency,
         symbols=symbols,
@@ -175,20 +200,31 @@ def get_latest_exchange_rates(
     description="Convert an amount from one currency to another using the latest exchange rates",
     tags=["currency-rates", "currency-conversion"],
     name="convert_currency_latest",
+    annotations={
+        "readOnlyHint": True,
+        "openWorldHint": True,
+    },
 )
 def convert_currency_latest(
-    amount: float,
-    from_currency: str,
-    to_currency: str,
+    ctx: Context,
+    amount: Annotated[
+        float, Field(description="The amount in the source currency to convert.")
+    ],
+    from_currency: Annotated[str, Field(description="The source currency code.")],
+    to_currency: Annotated[str, Field(description="The target currency code.")],
 ) -> dict:
     """
     Converts an amount from one currency to another using the latest exchange rates.
     The from_currency and to_currency parameters should be 3-character currency codes.
     """
+    ctx.debug(
+        f"Obtaining latest exchange rates for {from_currency} to {to_currency} from Frankfurter API at {frankfurter_api_url}"
+    )
     latest_rates = _get_latest_exchange_rates(
         base_currency=from_currency,
         symbols=[to_currency],
     )
+    ctx.debug(f"Converting {amount} of {from_currency} to {to_currency}")
     if not latest_rates or "rates" not in latest_rates:
         raise ValueError(
             f"Could not retrieve exchange rates for {from_currency} to {to_currency}."
@@ -212,13 +248,41 @@ def convert_currency_latest(
     description="Get historical exchange rates for a specific date or date range in specific currencies for a given base currency",
     tags=["currency-rates", "historical-exchange-rates"],
     name="get_historical_exchange_rates",
+    annotations={
+        "readOnlyHint": True,
+        "openWorldHint": True,
+    },
 )
 def get_historical_exchange_rates(
-    specific_date: str = None,
-    start_date: str = None,
-    end_date: str = None,
-    base_currency: str = None,
-    symbols: list[str] = None,
+    ctx: Context,
+    specific_date: Annotated[
+        str,
+        Field(
+            description="The specific date for which the historical rates are requested in the YYYY-MM-DD format."
+        ),
+    ] = None,
+    start_date: Annotated[
+        str,
+        Field(
+            description="The start date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format."
+        ),
+    ] = None,
+    end_date: Annotated[
+        str,
+        Field(
+            description="The end date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format."
+        ),
+    ] = None,
+    base_currency: Annotated[
+        str,
+        Field(description="A base currency code for which rates are to be requested."),
+    ] = None,
+    symbols: Annotated[
+        List[str],
+        Field(
+            "A list of target currency codes for which rates against the base currency will be provided. Leave blank to request all supported currencies."
+        ),
+    ] = None,
 ) -> dict:
     """
     Returns historical exchange rates for a specific date or date range.
@@ -226,6 +290,9 @@ def get_historical_exchange_rates(
     The symbols parameter can be used to filter the results to specific currencies.
     If symbols is not provided, all available currencies will be returned.
     """
+    ctx.debug(
+        f"Fetching historical exchange rates from Frankfurter API at {frankfurter_api_url}"
+    )
     return _get_historical_exchange_rates(
         specific_date=specific_date,
         start_date=start_date,
@@ -239,21 +306,39 @@ def get_historical_exchange_rates(
     description="Convert an amount from one currency to another using the exchange rates for a specific date",
     tags=["currency-rates", "currency-conversion", "historical-exchange-rates"],
     name="convert_currency_specific_date",
+    annotations={
+        "readOnlyHint": True,
+        "openWorldHint": True,
+    },
 )
 def convert_currency_specific_date(
-    amount: float,
-    from_currency: str,
-    to_currency: str,
-    specific_date: str = None,
+    ctx: Context,
+    amount: Annotated[
+        float, Field(description="The amount in the source currency to convert.")
+    ],
+    from_currency: Annotated[str, Field(description="The source currency code.")],
+    to_currency: Annotated[str, Field(description="The target currency code.")],
+    specific_date: Annotated[
+        str,
+        Field(
+            description="The specific date for which the conversion is requested in the YYYY-MM-DD format."
+        ),
+    ],
 ) -> dict:
     """
     Convert an amount from one currency to another using the exchange rates for a specific date.
     The from_currency and to_currency parameters should be 3-character currency codes.
     """
+    ctx.debug(
+        f"Obtaining historical exchange rates for {from_currency} to {to_currency} on {specific_date} from Frankfurter API at {frankfurter_api_url}"
+    )
     date_specific_rates = _get_historical_exchange_rates(
         specific_date=specific_date,
         base_currency=from_currency,
         symbols=[to_currency],
+    )
+    ctx.debug(
+        f"Converting {amount} of {from_currency} to {to_currency} on {specific_date}"
     )
     if not date_specific_rates or "rates" not in date_specific_rates:
         raise ValueError(

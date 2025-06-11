@@ -8,7 +8,6 @@ from frankfurtermcp.utils import parse_env
 app = FastMCP(
     name="test_composition",
     instructions="This is a MCP server to test dynamic composition of MCP.",
-    tags=["frankfurtermcp", "mcp", "composition"],
 )
 
 COMPOSITION_PREFIX = "composition_"
@@ -18,6 +17,9 @@ COMPOSITION_PREFIX = "composition_"
     description="The quintessential hello world tool",
     tags=["hello", "world"],
     name="hello_world",
+    annotations={
+        "readOnlyHint": True,
+    },
 )
 def hello_world(name: str = None) -> str:
     """
