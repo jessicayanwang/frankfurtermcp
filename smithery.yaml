@@ -5,4 +5,9 @@ build:
   dockerBuildPath: "."
 startCommand:
   type: "http"
-  configSchema: {}
+  configSchema:
+    type: "object"
+    properties:
+      apiKey:
+        type: "string"
+        description: "Unused API key"

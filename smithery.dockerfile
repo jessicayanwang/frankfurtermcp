@@ -16,5 +16,5 @@ RUN pip install --upgrade pip
 RUN pip install frankfurtermcp
 
 # Run the application
-ENTRYPOINT ["sh", "-c"]
-CMD ["PORT=${PORT} FASTMCP_PORT=${PORT} python -m frankfurtermcp.server"]
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["env FASTMCP_PORT=${PORT} echo ${FASTMCP_PORT} && python -m frankfurtermcp.server"]
