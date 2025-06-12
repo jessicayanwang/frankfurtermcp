@@ -133,11 +133,11 @@ uv run cli --help
 
 This will produce an output similar to the screenshot below.
 
-![cli-help-screenshot](screenshots/cli-help.png "FrankfurterMCP CLI help")
+![cli-help-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-help.png "FrankfurterMCP CLI help")
 
 Before calling the `tools-info` command, you **MUST** have the server running in `streamable-http` or `sse` transport mode, preferably locally, e.g., by invoking `uv run frankfurtermcp`. A successful call of the `tools-info` command will generate an output similar to the screenshot shown below.
 
-![cli-tools-info-screenshot](screenshots/cli-tools-info.png "FrankfurterMCP CLI tools-info")
+![cli-tools-info-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-tools-info.png "FrankfurterMCP CLI tools-info")
 
 ## Contributing
 
