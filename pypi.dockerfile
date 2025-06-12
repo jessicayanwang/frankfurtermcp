@@ -15,10 +15,6 @@ WORKDIR ${HOME}/app
 RUN pip install --upgrade pip
 RUN pip install frankfurtermcp
 
-# Copy the default environment values
-COPY ./.env.template ./.env
-
-# Expose the port to conect
-EXPOSE 8000
 # Run the application
-ENTRYPOINT [ "python", "-m", "frankfurtermcp.server" ]
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["PORT=${PORT} FASTMCP_PORT=${PORT} python -m frankfurtermcp.server"]
