@@ -3,7 +3,7 @@ import sys
 from fastmcp import FastMCP
 from frankfurtermcp.common import EnvironmentVariables
 from frankfurtermcp.server import app as frankfurtermcp
-from frankfurtermcp.utils import parse_env
+from frankfurtermcp.common import parse_env
 
 app = FastMCP(
     name="test_composition",

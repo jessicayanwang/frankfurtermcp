@@ -10,10 +10,9 @@ from fastmcp import FastMCP, Context
 
 from pydantic import Field
 from rich import print as print
-from frankfurtermcp.common import EnvironmentVariables
-from frankfurtermcp.utils import parse_env
+from frankfurtermcp.common import EnvironmentVariables, parse_env
 
-from frankfurtermcp import package_metadata, frankfurter_api_url
+from frankfurtermcp.common import package_metadata, frankfurter_api_url
 
 app = FastMCP(
     name=package_metadata["Name"],
@@ -176,7 +175,7 @@ def get_latest_exchange_rates(
     symbols: Annotated[
         List[str],
         Field(
-            "A list of target currency codes for which rates against the base currency will be provided. Leave blank to request all supported currencies."
+            description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
         ),
     ] = None,
 ) -> dict:
@@ -280,7 +279,7 @@ def get_historical_exchange_rates(
     symbols: Annotated[
         List[str],
         Field(
-            "A list of target currency codes for which rates against the base currency will be provided. Leave blank to request all supported currencies."
+            description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
         ),
     ] = None,
 ) -> dict:

@@ -2,46 +2,11 @@ import json
 import multiprocessing
 import asyncio
 import time
-from frankfurtermcp.common import EnvironmentVariables
 from fastmcp import Client
 
-from frankfurtermcp.utils import parse_env
 from frankfurtermcp.server import main as mcp_server_composition
-from dotenv import load_dotenv
+from frankfurtermcp.common import get_nonstdio_mcp_client
 import pytest
-
-
-def _get_mcp_client():
-    load_dotenv()
-    transport_type = parse_env(
-        EnvironmentVariables.MCP_SERVER_TRANSPORT,
-        default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
-        allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
-    )
-    transport_endpoint = None
-    fastmcp_server_host = parse_env(
-        "FASTMCP_SERVER_HOST",
-        default_value="localhost",
-    )
-    fastmcp_server_port = parse_env(
-        "FASTMCP_SERVER_PORT",
-        default_value=8000,
-        type_cast=int,
-    )
-    if transport_type == "streamable-http":
-        transport_endpoint = f"http://{fastmcp_server_host}:{fastmcp_server_port}/mcp"
-    elif transport_type == "sse":
-        transport_endpoint = f"http://{fastmcp_server_host}:{fastmcp_server_port}/sse"
-    else:
-        raise ValueError(
-            f"Unsupported transport type: {transport_type}. "
-            "Allowed values are for the test are only sse and streamable-http: "
-        )
-    mcp_client = Client(
-        transport=transport_endpoint,
-        timeout=60,
-    )
-    return mcp_client
 
 
 @pytest.fixture(scope="module")
@@ -49,7 +14,7 @@ def mcp_client():
     """
     Fixture to create a client for the MCP server.
     """
-    return _get_mcp_client()
+    return get_nonstdio_mcp_client()
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -64,7 +29,7 @@ def mcp_server():
         """
         Wait for the MCP server to start and be ready to accept connections.
         """
-        client = _get_mcp_client()
+        client = get_nonstdio_mcp_client()
         ping_result = False
         start = time.time()
         while (time.time() - start) < timeout and not ping_result:
@@ -132,12 +97,12 @@ class TestMCPServer:
         )
         json_result: dict = json.loads(conversion_metadata[0].text)
         print(f"Conversion metadata: {json_result}")
-        assert isinstance(json_result["converted_amount"], float), (
-            "Expected float value for converted amount"
-        )
-        assert json_result["converted_amount"] > 100.0, (
-            "The exchange rate for GBP to JPY should be greater than 1.0"
-        )
+        assert isinstance(
+            json_result["converted_amount"], float
+        ), "Expected float value for converted amount"
+        assert (
+            json_result["converted_amount"] > 100.0
+        ), "The exchange rate for GBP to JPY should be greater than 1.0"
 
     def test_get_latest_exchange_rates(self, mcp_client):
         """
@@ -153,9 +118,9 @@ class TestMCPServer:
         )
         json_result: dict = json.loads(currencies[0].text)
         print(f"Latest rates: {json_result}")
-        assert len(json_result["rates"].keys()) > 0, (
-            "Expected non-empty list of currency rates"
-        )
+        assert (
+            len(json_result["rates"].keys()) > 0
+        ), "Expected non-empty list of currency rates"
         assert all(
             (isinstance(code, str) and len(code) == 3)
             for code in json_result["rates"].keys()
@@ -204,9 +169,9 @@ class TestMCPServer:
         )
         json_result: dict = json.loads(conversion_metadata[0].text)
         print(f"Conversion metadata: {json_result}")
-        assert isinstance(json_result["converted_amount"], float), (
-            "Expected float value for converted amount"
-        )
-        assert json_result["converted_amount"] > 100.0, (
-            "The exchange rate for GBP to JPY should be greater than 1.0"
-        )
+        assert isinstance(
+            json_result["converted_amount"], float
+        ), "Expected float value for converted amount"
+        assert (
+            json_result["converted_amount"] > 100.0
+        ), "The exchange rate for GBP to JPY should be greater than 1.0"

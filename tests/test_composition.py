@@ -3,48 +3,15 @@ import asyncio
 import time
 from fastmcp import Client
 
-from frankfurtermcp.common import EnvironmentVariables
+from frankfurtermcp.common import get_nonstdio_mcp_client
+
+# from frankfurtermcp.common import EnvironmentVariables
 from frankfurtermcp.composition import (
     COMPOSITION_PREFIX,
     main as mcp_server_composition,
 )
-from dotenv import load_dotenv
+
 import pytest
-
-from frankfurtermcp.utils import parse_env
-
-
-def _get_mcp_client():
-    load_dotenv()
-    transport_type = parse_env(
-        EnvironmentVariables.MCP_SERVER_TRANSPORT,
-        default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
-        allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
-    )
-    transport_endpoint = None
-    fastmcp_server_host = parse_env(
-        "FASTMCP_SERVER_HOST",
-        default_value="localhost",
-    )
-    fastmcp_server_port = parse_env(
-        "FASTMCP_SERVER_PORT",
-        default_value=8000,
-        type_cast=int,
-    )
-    if transport_type == "streamable-http":
-        transport_endpoint = f"http://{fastmcp_server_host}:{fastmcp_server_port}/mcp"
-    elif transport_type == "sse":
-        transport_endpoint = f"http://{fastmcp_server_host}:{fastmcp_server_port}/sse"
-    else:
-        raise ValueError(
-            f"Unsupported transport type: {transport_type}. "
-            "Allowed values are for the test are only sse and streamable-http: "
-        )
-    mcp_client = Client(
-        transport=transport_endpoint,
-        timeout=60,
-    )
-    return mcp_client
 
 
 @pytest.fixture(scope="module")
@@ -52,7 +19,7 @@ def mcp_client():
     """
     Fixture to create a client for the MCP server.
     """
-    return _get_mcp_client()
+    return get_nonstdio_mcp_client()
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -67,7 +34,7 @@ def mcp_server():
         """
         Wait for the MCP server to start and be ready to accept connections.
         """
-        client = _get_mcp_client()
+        client = get_nonstdio_mcp_client()
         ping_result = False
         start = time.time()
         while (time.time() - start) < timeout and not ping_result:
@@ -112,7 +79,8 @@ class TestMCPComposition:
                 mcp_client=mcp_client,
             )
         )
-        print(tools)
+        for tool in tools:
+            print(f"Tool name: {tool.name}. Description: {tool.description}")
         assert isinstance(tools, list), "Expected a list of tools"
         assert len(tools) == 6, "Expected 6 tools to be available"
         composed_tools = [

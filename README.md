@@ -4,7 +4,7 @@
 [![Dependabot Updates](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates) [![pytest](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml)
 # Frankfurter MCP
 
-[Frankfurter](https://frankfurter.dev/) is a useful API for latest currency exchange rates, historical data, or time series published by sources such as the European Central Bank. Should you need to access the Frankfurter API as tools for language model agents exposed over the Model Context Protocol (MCP), Frankfurter MCP is what you need.
+[Frankfurter](https://frankfurter.dev/) is a useful API for latest currency exchange rates, historical data, or time series published by sources such as the European Central Bank. Should you have to access the Frankfurter API as tools for language model agents exposed over the Model Context Protocol (MCP), Frankfurter MCP is what you need.
 
 ## Project status
 
@@ -32,7 +32,7 @@ uv sync
 
 Following is a list of environment variables that can be used to configure the application. A template of environment variables is provided in the file `.env.template`.
 
-The following environment variables can be specified, prefixed with `FASTMCP_SERVER_`: `HOST`, `PORT`, `DEBUG` and `LOG_LEVEL`. See [key configuration options](https://gofastmcp.com/servers/fastmcp#key-configuration-options) for FastMCP. Note that `on_duplicate_` prefixed options specified as environment variables _will be ignored_.
+The following environment variables can be specified, prefixed with `FASTMCP_`: `HOST`, `PORT`, `DEBUG` and `LOG_LEVEL`. See [key configuration options](https://gofastmcp.com/servers/fastmcp#key-configuration-options) for FastMCP. Note that `on_duplicate_` prefixed options specified as environment variables _will be ignored_.
 
 The underlying HTTP client also respects some environment variables, as documented in [the HTTPX library](https://www.python-httpx.org/environment_variables/). In addition, `SSL_CERT_FILE` and `SSL_CERT_DIR` can be configured to so that
 
@@ -113,6 +113,34 @@ Upon successful build and container start, the MCP server will be available over
 ## Usage (dynamic mounting with FastMCP)
 
 To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/), check the file [`src/frankfurtermcp/composition.py`](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py).
+
+## List of available tools
+
+The following table lists the names of the tools as exposed by the FrankfurterMCP server. It does not list the tool(s) exposed through [the composition example](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py). The descriptions shown here are for documentation purposes, which may differ from the actual descriptions exposed over the model context protocol.
+
+| Name         |  Description   |
+|--------------|----------------|
+| `get_supported_currencies` | Get a list of currencies supported by the Frankfurter API. |
+| `get_latest_exchange_rates` | Get latest exchange rates in specific currencies for a given base currency. |
+| `convert_currency_latest` | Convert an amount from one currency to another using the latest exchange rates. |
+| `get_historical_exchange_rates` | Get historical exchange rates for a specific date or date range in specific currencies for a given base currency. |
+| `convert_currency_specific_date` | Convert an amount from one currency to another using the exchange rates for a specific date. |
+
+The required and optional arguments for each tool are not listed in the following table for brevity but are available to the MCP client over the protocol.
+
+If you want to see the detailed schema for a particular tool, you can do so using the `tools-info` commmand from the command line interface. The command line interface is available as the script `cli`. You can invoke its help to see the available commands as follows.
+
+```bash
+uv run cli --help
+```
+
+This will produce an output similar to the screenshot below.
+
+![cli-help-screenshot](screenshots/cli-help.png "FrankfurterMCP CLI help")
+
+Before calling the `tools-info` command, you **MUST** have the server running in `streamable-http` or `sse` transport mode, preferably locally, e.g., by invoking `uv run frankfurtermcp`. A successful call of the `tools-info` command will generate an output similar to the screenshot shown below.
+
+![cli-tools-info-screenshot](screenshots/cli-tools-info.png "FrankfurterMCP CLI tools-info")
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 [project]
 name = "frankfurtermcp"
-version = "0.1.8"
+version = "0.2.0"
 description = "A MCP server for the Frankfurter API for currency exchange rates."
 readme = "README.md"
 license = "MIT"
@@ -11,10 +11,12 @@ requires-python = ">=3.12"
 dependencies = [
     "fastmcp>=2.7.0",
     "python-dotenv>=1.1.0",
+    "typer>=0.16.0",
 ]
 
 [project.scripts]
 frankfurtermcp = "frankfurtermcp.server:main"
+cli = "frankfurtermcp.cli:main"
 
 [build-system]
 requires = ["hatchling"]
