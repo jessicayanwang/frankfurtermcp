@@ -17,4 +17,4 @@ RUN pip install frankfurtermcp
 
 # Run the application
 ENTRYPOINT ["/bin/sh", "-c"]
-CMD ["PORT=${PORT} FASTMCP_PORT=${PORT} python -m frankfurtermcp.server"]
+CMD ["python -m frankfurtermcp.server"]

@@ -82,7 +82,7 @@ To build the image, create the container and start it, run the following in _WD_
 
 ```bash
 docker build -f pypi.dockerfile -t frankfurtermcp-pypi .
-docker create -p 8000:8000/tcp --name frankfurtermcp-pypi-container frankfurtermcp-pypi
+docker create -p 8000:8000/tcp --env-file .env.template --expose 8000 --name frankfurtermcp-pypi-container frankfurtermcp-pypi
 docker start frankfurtermcp-pypi-container
 ```
 
@@ -101,7 +101,7 @@ Once the distribution has been built, to build the Docker image, create the cont
 
 ```bash
 docker build -f local.dockerfile -t frankfurtermcp-local .
-docker create -p 8000:8000/tcp --name frankfurtermcp-local-container frankfurtermcp-local
+docker create -p 8000:8000/tcp --env-file .env.template --expose 8000 --name frankfurtermcp-local-container frankfurtermcp-local
 docker start frankfurtermcp-local-container
 ```
 
