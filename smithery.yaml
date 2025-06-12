@@ -1,7 +1,8 @@
 # Check reference at https://smithery.ai/docs/build/project-config/smithery-yaml
 runtime: "container"
 build:
-  dockerfile: "pypi.dockerfile"
+  dockerfile: "smithery.dockerfile"
   dockerBuildPath: "."
 startCommand:
   type: "http"
+  configSchema: {}
