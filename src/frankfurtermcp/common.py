@@ -129,19 +129,19 @@ def get_nonstdio_mcp_client() -> Client:
         allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
     )
     transport_endpoint = None
-    FASTMCP_host = parse_env(
+    server_host = parse_env(
         "FASTMCP_HOST",
         default_value="localhost",
     )
-    FASTMCP_port = parse_env(
+    server_port = parse_env(
         "FASTMCP_PORT",
         default_value=8000,
         type_cast=int,
     )
     if transport_type == "streamable-http":
-        transport_endpoint = f"http://{FASTMCP_host}:{FASTMCP_port}/mcp"
+        transport_endpoint = f"http://{server_host}:{server_port}/mcp"
     elif transport_type == "sse":
-        transport_endpoint = f"http://{FASTMCP_host}:{FASTMCP_port}/sse"
+        transport_endpoint = f"http://{server_host}:{server_port}/sse"
     else:
         raise ValueError(
             f"Unsupported transport type: {transport_type}. "
