@@ -373,7 +373,7 @@ wheels = [
 
 [[package]]
 name = "frankfurtermcp"
-version = "0.2.2"
+version = "0.2.3"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
@@ -381,12 +381,14 @@ dependencies = [
     { name = "typer" },
 ]
 
+[package.optional-dependencies]
+opt = [
+    { name = "llama-index-tools-mcp" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "icecream" },
-]
-opt = [
-    { name = "llama-index-tools-mcp" },
 ]
 test = [
     { name = "pytest" },
@@ -395,13 +397,14 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "fastmcp", specifier = ">=2.7.0" },
+    { name = "llama-index-tools-mcp", marker = "extra == 'opt'", specifier = ">=0.2.5" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "typer", specifier = ">=0.16.0" },
 ]
+provides-extras = ["opt"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "icecream", specifier = ">=2.1.4" }]
-opt = [{ name = "llama-index-tools-mcp", specifier = ">=0.2.5" }]
 test = [{ name = "pytest", specifier = ">=8.4.0" }]
 
 [[package]]

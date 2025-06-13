@@ -1,4 +1,5 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=3776ab&labelColor=e4e4e4)](https://www.python.org/downloads/release/python-3120/) [![Dependabot Updates](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates) [![pytest](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml)
+
 # Frankfurter MCP
 
 [Frankfurter](https://frankfurter.dev/) is a useful API for latest currency exchange rates, historical data, or time series published by sources such as the European Central Bank. Should you have to access the Frankfurter API as tools for language model agents exposed over the Model Context Protocol (MCP), Frankfurter MCP is what you need.
@@ -9,6 +10,7 @@ Following is a table of some updates regarding the project status. Note that the
 
 | Date     |  Status   |  Notes or observations   |
 |----------|:-------------:|----------------------|
+| June 13, 2025 |  active |  Added LlamaIndex tool listing for demonstration only. (The `--all-extras` flag is necessary to install LlamaIndex, which is not installed by default.) |
 | June 9, 2025 |  active |  Added containerisation, support for self-signed, proxies. |
 | June 8, 2025 |  active |  Added dynamic composition. |
 | June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API. |
@@ -18,11 +20,10 @@ Following is a table of some updates regarding the project status. Note that the
 
 The directory where you clone this repository will be referred to as the _working directory_ or _WD_ hereinafter.
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/). To install the project with its essential dependencies in a virtual environment, run the following in the _WD_. To install all non-essential dependencies (_which are required for developing and testing_), add the `--all-extras` flag to the following command.
-
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/). To install the project with its minimal dependencies in a virtual environment, run the following in the _WD_. To install all non-essential dependencies (_which are required for developing and testing_), replace the `--no-dev` with the `--all-groups --all-extras` flag in the following command.
 
 ```bash
-uv sync
+uv sync --no-dev
 ```
 
 ## Environment variables
@@ -73,36 +74,17 @@ The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http
 
 There are two Dockerfiles provided in this repository.
 
- - `pypi.dockerfile` for using the version of `frankfurtermcp` on PyPI.
+ - `smithery.dockerfile` for automatically deploying this project to [Smithery AI](https://smithery.ai/). **You do not need to use this Dockerfile**.
  - `local.dockerfile` for using the latest version, which can contain your edits to the code if you do make edits.
-
-### Using the version available on PyPI
 
 To build the image, create the container and start it, run the following in _WD_. _Choose shorter names for the image and container if you prefer._
 
-```bash
-docker build -f pypi.dockerfile -t frankfurtermcp-pypi .
-docker create -p 8000:8000/tcp --env-file .env.template --expose 8000 --name frankfurtermcp-pypi-container frankfurtermcp-pypi
-docker start frankfurtermcp-pypi-container
-```
-
-Upon successful build and container start, the MCP server will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport.
-
-### Using the local version
-
-Before containerising the local version, you must build the project distribution wheel file and ensure that only one such wheel file exists. To do so, run the following in _WD_.
+If you change the port to anything other than 8000 in `.env.template`, _do remember to change the port number references in the following command_. Instead of passing all the environment variables using the `--env-file` option, you can also pass individual environment variables using the `-e` option.
 
 ```bash
-rm -fR dist
-uv build
-```
-
-Once the distribution has been built, to build the Docker image, create the container and start it, run the following in _WD_. _Choose shorter names for the image and container if you prefer._
-
-```bash
-docker build -f local.dockerfile -t frankfurtermcp-local .
-docker create -p 8000:8000/tcp --env-file .env.template --expose 8000 --name frankfurtermcp-local-container frankfurtermcp-local
-docker start frankfurtermcp-local-container
+docker build -f local.dockerfile -t frankfurtermcp .
+docker create -p 8000:8000/tcp --env-file .env.template --expose 8000 --name frankfurtermcp-container frankfurtermcp
+docker start frankfurtermcp-container
 ```
 
 Upon successful build and container start, the MCP server will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport.
@@ -138,6 +120,10 @@ This will produce an output similar to the screenshot below.
 Before calling the `tools-info` command, you **MUST** have the server running in `streamable-http` or `sse` transport mode, preferably locally, e.g., by invoking `uv run frankfurtermcp`. A successful call of the `tools-info` command will generate an output similar to the screenshot shown below.
 
 ![cli-tools-info-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-tools-info.png "FrankfurterMCP CLI tools-info")
+
+Alternative to the `tools-info` command, you can also run call the `llamaindex-tools-list` command to display the names of the tools without the respective function schemas. This functionality is provided only to optionally demonstrate that the LlamaIndex MCP client can read the tools list from this MCP server. In order for this to function, you must install LlamaIndex MCP client by calling `uv sync --extra opt`. The output of calling this command will look like the following.
+
+![cli-llamaindex-tools-list-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-llamaindex-tools-list.png "FrankfurterMCP CLI llamaindex-tools-list")
 
 ## Contributing
 

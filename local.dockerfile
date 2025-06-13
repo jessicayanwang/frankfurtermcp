@@ -1,26 +1,35 @@
-# Pull Python on Debian image
+# Use a Python image with uv pre-installed
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS uv
+
+# Install the project into `/app`
+WORKDIR /app
+
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+
+# Copy from the cache instead of linking since it's a mounted volume
+ENV UV_LINK_MODE=copy
+
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev --no-editable
+
+# Then, add the rest of the project source code and install it
+# Installing separately from its dependencies allows optimal layer caching
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-editable
+
 FROM python:3.12.5-slim-bookworm
 
-# Upgrade -- let's avoid this to reduce the size of the image
-# RUN apt-get update && apt-get -y upgrade
+WORKDIR /app
 
-# Create a non-root user.
-RUN useradd -m -u 1000 app_user
+COPY --from=uv --chown=app:app /app/.venv /app/.venv
 
-# Switch to the non-root user
-ENV HOME="/home/app_user"
-USER app_user
-# Set the working directory in the container
-WORKDIR ${HOME}/app
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Copy the wheel file to the container without caring about the version
-# MAKE SURE TO BUILD THE WHEEL FIRST AND MAKE SURE THAT THERE IS ONLY ONE WHEEL FILE IN THE dist FOLDER
-COPY ./dist/frankfurtermcp-*.whl ./dist/
-
-RUN pip install --upgrade pip
-RUN pip install wheel ./dist/frankfurtermcp-*.whl
-
-# Run the application
 ENTRYPOINT ["sh", "-c"]
-CMD ["python -m frankfurtermcp.server"]
-EXPOSE ${FASTMCP_PORT}
+CMD ["frankfurtermcp"]

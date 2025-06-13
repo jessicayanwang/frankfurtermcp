@@ -18,6 +18,11 @@ dependencies = [
 frankfurtermcp = "frankfurtermcp.server:main"
 cli = "frankfurtermcp.cli:main"
 
+[project.optional-dependencies]
+opt = [
+    "llama-index-tools-mcp>=0.2.5",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -25,9 +30,6 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "icecream>=2.1.4",
-]
-opt = [
-    "llama-index-tools-mcp>=0.2.5",
 ]
 test = [
     "pytest>=8.4.0",

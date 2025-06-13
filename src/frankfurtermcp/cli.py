@@ -11,14 +11,6 @@ from frankfurtermcp.common import (
     package_metadata,
 )
 
-from llama_index.tools.mcp import (
-    # get_tools_from_mcp_url,
-    aget_tools_from_mcp_url,
-    BasicMCPClient,
-)
-
-# from frankfurtermcp.common import ic
-
 app = Typer(
     name=f"{package_metadata['Name']}-cli",
     no_args_is_help=True,
@@ -68,7 +60,7 @@ def tools_info():
         print("[bold red]No tools found.[/bold red]")
     else:
         table = Table(
-            caption="List of available tools using FastMCP client",
+            caption="List of available tools using the FastMCP client",
             caption_justify="right",
         )
         table.add_column("Name", style="cyan", no_wrap=True)
@@ -87,6 +79,17 @@ def llamaindex_tools_list():
     """
     List tools from the MCP server using LlamaIndex's MCP client.
     """
+    try:
+        from llama_index.tools.mcp import (
+            aget_tools_from_mcp_url,
+            BasicMCPClient,
+        )
+    except ImportError:
+        print(
+            "[bold red]LlamaIndex MCP client is not installed because it is an optional dependency.[/bold red] "
+            "Please install it by calling [yellow]uv sync --extra opt[/yellow]."
+        )
+        sys.exit(1)
     _print_header()
     transport_endpoint = get_nonstdio_transport_endpoint()
     llamaindex_client = BasicMCPClient(transport_endpoint)
@@ -97,12 +100,12 @@ def llamaindex_tools_list():
         print("[bold red]No tools found.[/bold red]")
     else:
         table = Table(
-            caption="List of available tools using LlamaIndex MCP client",
+            caption="List of available tools using the LlamaIndex MCP client",
             caption_justify="right",
         )
         table.add_column("Name", style="cyan", no_wrap=True)
         table.add_column(
-            ("Description"),
+            "Description",
             style="yellow",
         )
         for tool in tools_list:
