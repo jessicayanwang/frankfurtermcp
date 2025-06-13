@@ -5,10 +5,22 @@ from typer import Typer
 from rich import print as print
 from rich.console import Console
 from rich.table import Table
-from frankfurtermcp.common import get_nonstdio_mcp_client, package_metadata
+from frankfurtermcp.common import (
+    get_nonstdio_mcp_client,
+    get_nonstdio_transport_endpoint,
+    package_metadata,
+)
+
+from llama_index.tools.mcp import (
+    # get_tools_from_mcp_url,
+    aget_tools_from_mcp_url,
+    BasicMCPClient,
+)
+
+# from frankfurtermcp.common import ic
 
 app = Typer(
-    name=f"{package_metadata["Name"]}-cli",
+    name=f"{package_metadata['Name']}-cli",
     no_args_is_help=True,
     add_completion=False,
     help="A command-line test interface for the Frankfurter MCP server.",
@@ -55,13 +67,47 @@ def tools_info():
     if not tools_list:
         print("[bold red]No tools found.[/bold red]")
     else:
-        table = Table(caption="List of available tools", caption_justify="right")
+        table = Table(
+            caption="List of available tools using FastMCP client",
+            caption_justify="right",
+        )
         table.add_column("Name", style="cyan", no_wrap=True)
         table.add_column("Description and schema", style="yellow")
         for tool in tools_list:
             table.add_row(tool.name, tool.description)
             table.add_row(None, None)
             table.add_row(None, tool.model_dump_json(indent=2))
+            table.add_section()
+        console = Console()
+        console.print(table)
+
+
+@app.command()
+def llamaindex_tools_list():
+    """
+    List tools from the MCP server using LlamaIndex's MCP client.
+    """
+    _print_header()
+    transport_endpoint = get_nonstdio_transport_endpoint()
+    llamaindex_client = BasicMCPClient(transport_endpoint)
+    tools_list = asyncio.run(
+        aget_tools_from_mcp_url(transport_endpoint, llamaindex_client)
+    )
+    if not tools_list:
+        print("[bold red]No tools found.[/bold red]")
+    else:
+        table = Table(
+            caption="List of available tools using LlamaIndex MCP client",
+            caption_justify="right",
+        )
+        table.add_column("Name", style="cyan", no_wrap=True)
+        table.add_column(
+            ("Description"),
+            style="yellow",
+        )
+        for tool in tools_list:
+            tool_metadata = tool.__dict__["_metadata"]
+            table.add_row(tool_metadata.name, tool_metadata.description)
             table.add_section()
         console = Console()
         console.print(table)

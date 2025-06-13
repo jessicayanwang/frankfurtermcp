@@ -1,8 +1,8 @@
 # Pull Python on Debian image
 FROM python:3.12.5-slim-bookworm
 
-# Upgrade
-RUN apt-get update && apt-get -y upgrade
+# Upgrade -- let's avoid this to reduce the size of the image
+# RUN apt-get update && apt-get -y upgrade
 
 # Create a non-root user.
 RUN useradd -m -u 1000 app_user
@@ -21,5 +21,6 @@ RUN pip install --upgrade pip
 RUN pip install wheel ./dist/frankfurtermcp-*.whl
 
 # Run the application
-ENTRYPOINT ["/bin/sh", "-c"]
+ENTRYPOINT ["sh", "-c"]
 CMD ["python -m frankfurtermcp.server"]
+EXPOSE ${FASTMCP_PORT}
