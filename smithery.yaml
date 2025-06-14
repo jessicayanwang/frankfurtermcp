@@ -1,4 +1,6 @@
 # Check reference at https://smithery.ai/docs/build/project-config/smithery-yaml
+# This, however, is confusing: https://smithery.ai/docs/build/project-config since the reference does not have a `start` key.
+version: 1
 runtime: "container"
 env:
   FASTMCP_HOST: "0.0.0.0"
@@ -18,3 +20,6 @@ startCommand:
         type: "string"
         description: "Unused API key"
     required: []
+start:
+  command: ["python -m frankfurtermcp.server"]
+  port: 8000
