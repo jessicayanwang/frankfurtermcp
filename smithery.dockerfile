@@ -9,8 +9,10 @@ USER app_user
 # Set the working directory in the container
 WORKDIR /home/app_user/app
 
+COPY ./README.md ./LICENSE ./pyproject.toml ./src ./
+
 # Install the latest version as available on PyPI
-RUN pip install --upgrade pip && pip install --no-cache-dir frankfurtermcp
+RUN pip install --upgrade pip && pip install --no-cache-dir .
 
 ENTRYPOINT ["sh", "-c"]
-CMD ["PORT=${PORT} FASTMCP_PORT=${PORT} python -m frankfurtermcp.server"]
+CMD ["PORT=${PORT} FASTMCP_PORT=${PORT} MCP_SERVER_TRANSPORT=stdio python -m frankfurtermcp.server"]
