@@ -378,15 +378,20 @@ def main():
         f"[green]Initiating startup[/green] of [bold]{package_metadata['Name']} {package_metadata['Version']}[/bold], [red]press CTRL+C to exit...[/red]"
     )
     # TODO: Should this be forked as a separate process, to which we can send the SIGTERM signal?
-    app.run(
-        transport=parse_env(
-            EnvironmentVariables.MCP_SERVER_TRANSPORT,
-            default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
-            allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
-        ),
-        uvicorn_config={
-            "timeout_graceful_shutdown": 5,  # seconds
-        },
+    transport_type = parse_env(
+        EnvironmentVariables.MCP_SERVER_TRANSPORT,
+        default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
+        allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
+    )
+    (
+        app.run(
+            transport=transport_type,
+            uvicorn_config={
+                "timeout_graceful_shutdown": 5,  # seconds
+            },
+        )
+        if transport_type != "stdio"
+        else app.run(transport=transport_type)
     )
 
 

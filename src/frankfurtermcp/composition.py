@@ -53,15 +53,20 @@ def main():
     signal.signal(signal.SIGINT, sigint_handler)
 
     app.mount(prefix=COMPOSITION_PREFIX, server=frankfurtermcp, as_proxy=False)
-    app.run(
-        transport=parse_env(
-            EnvironmentVariables.MCP_SERVER_TRANSPORT,
-            default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
-            allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
-        ),
-        uvicorn_config={
-            "timeout_graceful_shutdown": 5,  # seconds
-        },
+    transport_type = parse_env(
+        EnvironmentVariables.MCP_SERVER_TRANSPORT,
+        default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_TRANSPORT,
+        allowed_values=EnvironmentVariables.ALLOWED__MCP_SERVER_TRANSPORT,
+    )
+    (
+        app.run(
+            transport=transport_type,
+            uvicorn_config={
+                "timeout_graceful_shutdown": 5,  # seconds
+            },
+        )
+        if transport_type != "stdio"
+        else app.run(transport=transport_type)
     )
 
 
