@@ -61,6 +61,15 @@ def main():
     (
         app.run(
             transport=transport_type,
+            host=parse_env(
+                EnvironmentVariables.MCP_SERVER_HOST,
+                default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_HOST,
+            ),
+            port=parse_env(
+                EnvironmentVariables.MCP_SERVER_PORT,
+                default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_PORT,
+                type_cast=int,
+            ),
             uvicorn_config={
                 "timeout_graceful_shutdown": 5,  # seconds
             },

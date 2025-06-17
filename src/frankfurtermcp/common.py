@@ -19,6 +19,12 @@ class EnvironmentVariables:
     List of environment variables used in this project.
     """
 
+    MCP_SERVER_HOST = "FASTMCP_HOST"
+    DEFAULT__MCP_SERVER_HOST = "localhost"
+
+    MCP_SERVER_PORT = "FASTMCP_PORT"
+    DEFAULT__MCP_SERVER_PORT = 8000
+
     MCP_SERVER_TRANSPORT = "MCP_SERVER_TRANSPORT"
     DEFAULT__MCP_SERVER_TRANSPORT = "streamable-http"
     ALLOWED__MCP_SERVER_TRANSPORT = ["stdio", "sse", "streamable-http"]
