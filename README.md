@@ -1,4 +1,5 @@
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=3776ab&labelColor=e4e4e4)](https://www.python.org/downloads/release/python-3120/) [![Dependabot Updates](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/dependabot/dependabot-updates) [![pytest](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=3776ab&labelColor=e4e4e4)](https://www.python.org/downloads/release/python-3120/) [![pytest](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml) ![PyPI](https://img.shields.io/pypi/v/frankfurtermcp?label=pypi%20package)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/frankfurtermcp?label=pypi%20downloads)
 
 # Frankfurter MCP
 
