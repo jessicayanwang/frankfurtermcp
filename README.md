@@ -1,5 +1,5 @@
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=3776ab&labelColor=e4e4e4)](https://www.python.org/downloads/release/python-3120/) [![pytest](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml) ![PyPI](https://img.shields.io/pypi/v/frankfurtermcp?label=pypi%20package)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/frankfurtermcp?label=pypi%20downloads)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=3776ab&labelColor=e4e4e4)](https://www.python.org/downloads/release/python-3120/) [![pytest](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml) [![PyPI](https://img.shields.io/pypi/v/frankfurtermcp?label=pypi%20package)](https://pypi.org/project/frankfurtermcp/#history)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/frankfurtermcp?label=pypi%20downloads)](https://pypi.org/project/frankfurtermcp/)
 
 # Frankfurter MCP
 
@@ -39,6 +39,8 @@ The underlying HTTP client also respects some environment variables, as document
 |--------------|----------------|
 | `HTTPX_TIMEOUT` | [5.0] The time for the underlying HTTP client to wait, in seconds, for a response. |
 | `HTTPX_VERIFY_SSL` | [True] This variable can be set to False to turn off SSL certificate verification, if, for instance, you are using a proxy server with a self-signed certificate. However, setting this to False _is advised against_: instead, use the `SSL_CERT_FILE` and `SSL_CERT_DIR` variables to properly configure self-signed certificates. |
+| `FAST_MCP_HOST` | [0.0.0.0] This variable specifies which host the MCP server must bind to unless the server transport (see below) is set to `stdio`. |
+| `FAST_MCP_PORT` | [8000] This variable specifies which port the MCP server must listen on unless the server transport (see below) is set to `stdio`. |
 | `MCP_SERVER_TRANSPORT` | [streamable-http] The acceptable options are `stdio`, `sse` or `streamable-http`. Given the use-case of running this MCP server as a remotely accessible endpoint, there is no real reason to choose `stdio`. |
 | `FRANKFURTER_API_URL` | [https://api.frankfurter.dev/v1] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
 
