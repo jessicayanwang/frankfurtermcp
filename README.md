@@ -21,7 +21,7 @@ Following is a table of some updates regarding the project status. Note that the
 
 The directory where you clone this repository will be referred to as the _working directory_ or _WD_ hereinafter.
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/). To install the project with its minimal dependencies in a virtual environment, run the following in the _WD_. To install all non-essential dependencies (_which are required for developing and testing_), replace the `--no-dev` with the `--all-groups --all-extras` flag in the following command.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/). To install the project with its minimal dependencies in a virtual environment, run the following in the _WD_. To install all non-essential dependencies (_which are required for developing and testing_), replace the `--no-dev` with the `--all-groups` flag in the following command.
 
 ```bash
 uv sync --no-dev
@@ -42,7 +42,7 @@ The underlying HTTP client also respects some environment variables, as document
 | `FAST_MCP_HOST` | [0.0.0.0] This variable specifies which host the MCP server must bind to unless the server transport (see below) is set to `stdio`. |
 | `FAST_MCP_PORT` | [8000] This variable specifies which port the MCP server must listen on unless the server transport (see below) is set to `stdio`. |
 | `MCP_SERVER_TRANSPORT` | [streamable-http] The acceptable options are `stdio`, `sse` or `streamable-http`. Given the use-case of running this MCP server as a remotely accessible endpoint, there is no real reason to choose `stdio`. |
-| `MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE` | [True] An _experimental feature_ to add extra metadata to the MCP type `TextContent` that wraps the response data from each tool call. The additional metadata, for example, can include the API URL of the Frankfurter server that is used to obtain the responses. |
+| `MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE` | [True] An _experimental feature_ to include additional metadata to the MCP type `TextContent` that wraps the response data from each tool call. The additional metadata, for example, will include (as of June 21, 2025) the API URL of the Frankfurter server that is used to obtain the responses. |
 | `FRANKFURTER_API_URL` | [https://api.frankfurter.dev/v1] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
 
 ## Usage (with `pip`)
