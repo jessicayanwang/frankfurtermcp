@@ -4,11 +4,11 @@ import asyncio
 import time
 from fastmcp import Client
 
+from mcp.types import TextContent
+
 from frankfurtermcp.server import main as mcp_server_composition
 from frankfurtermcp.common import get_nonstdio_mcp_client
 import pytest
-
-from frankfurtermcp.common import ic
 
 
 @pytest.fixture(scope="module")
@@ -65,21 +65,25 @@ class TestMCPServer:
         async with mcp_client:
             result = await mcp_client.call_tool(tool_name, arguments=kwargs)
             await mcp_client.close()
-        ic(result)
+        for r in result:
+            # Log experimental metadata from TextContent responses
+            if isinstance(r, TextContent) and r.meta is not None:
+                print(f"{tool_name} response metadata: {r.meta}")
         return result
 
     def test_get_supported_currencies(self, mcp_client):
         """
         Test the get_supported_currencies function to ensure it returns a list of supported currencies.
         """
-        currencies = asyncio.run(
+        test_method = "get_supported_currencies"
+        response = asyncio.run(
             self.call_tool(
-                tool_name="get_supported_currencies",
+                tool_name=test_method,
                 mcp_client=mcp_client,
             )
         )
-        json_result: dict = json.loads(currencies[0].text)
-        print(f"Supported currencies: {json_result}")
+        json_result: dict = json.loads(response[0].text)
+        print(f"{test_method} response: {json_result}")
         assert len(json_result.keys()) > 0, "Expected non-empty list of currencies"
         assert all(
             (isinstance(code, str) and len(code) == 3) for code in json_result.keys()
@@ -89,41 +93,43 @@ class TestMCPServer:
         """
         Test the convert_currency_latest function to ensure it returns a list of supported currencies.
         """
-        conversion_response = asyncio.run(
+        test_method = "convert_currency_latest"
+        response = asyncio.run(
             self.call_tool(
-                tool_name="convert_currency_latest",
+                tool_name=test_method,
                 mcp_client=mcp_client,
                 from_currency="GBP",
                 to_currency="JPY",
                 amount=100.0,
             )
         )
-        json_result: dict = json.loads(conversion_response[0].text)
-        print(f"Conversion response: {json_result}")
-        assert isinstance(
-            json_result["converted_amount"], float
-        ), "Expected float value for converted amount"
-        assert (
-            json_result["converted_amount"] > 100.0
-        ), "The exchange rate for GBP to JPY should be greater than 1.0"
+        json_result: dict = json.loads(response[0].text)
+        print(f"{test_method} response: {json_result}")
+        assert isinstance(json_result["converted_amount"], float), (
+            "Expected float value for converted amount"
+        )
+        assert json_result["converted_amount"] > 100.0, (
+            "The exchange rate for GBP to JPY should be greater than 1.0"
+        )
 
     def test_get_latest_exchange_rates(self, mcp_client):
         """
         Test the get_latest_exchange_rates function to ensure that it returns the list of latest rates with other currencies.
         """
-        currencies = asyncio.run(
+        test_method = "get_latest_exchange_rates"
+        response = asyncio.run(
             self.call_tool(
-                tool_name="get_latest_exchange_rates",
+                tool_name=test_method,
                 mcp_client=mcp_client,
                 base_currency="JPY",
                 symbols=["EUR", "GBP", "CHF", "NZD"],
             )
         )
-        json_result: dict = json.loads(currencies[0].text)
-        print(f"Latest rates: {json_result}")
-        assert (
-            len(json_result["rates"].keys()) > 0
-        ), "Expected non-empty list of currency rates"
+        json_result: dict = json.loads(response[0].text)
+        print(f"{test_method} response: {json_result}")
+        assert len(json_result["rates"].keys()) > 0, (
+            "Expected non-empty list of currency rates"
+        )
         assert all(
             (isinstance(code, str) and len(code) == 3)
             for code in json_result["rates"].keys()
@@ -133,17 +139,19 @@ class TestMCPServer:
         """
         Test the get_historical_exchange_rates function to ensure that it returns the list of latest rates with other currencies.
         """
-        currencies = asyncio.run(
+        test_method = "get_historical_exchange_rates"
+        response = asyncio.run(
             self.call_tool(
-                tool_name="get_historical_exchange_rates",
+                tool_name=test_method,
                 mcp_client=mcp_client,
                 base_currency="JPY",
                 start_date="2025-06-01",
+                end_date="2025-06-19",
                 symbols=["EUR", "GBP", "CHF", "NZD"],
             )
         )
-        json_result: dict = json.loads(currencies[0].text)
-        print(f"Historical rates: {json_result}")
+        json_result: dict = json.loads(response[0].text)
+        print(f"{test_method} response: {json_result}")
         assert all(
             len(rates_for_date) > 0
             for _, rates_for_date in json_result["rates"].items()
@@ -160,9 +168,10 @@ class TestMCPServer:
         """
         Test the convert_currency_specific_date function to ensure it returns a list of supported currencies.
         """
-        conversion_response = asyncio.run(
+        test_method = "convert_currency_specific_date"
+        response = asyncio.run(
             self.call_tool(
-                tool_name="convert_currency_specific_date",
+                tool_name=test_method,
                 mcp_client=mcp_client,
                 from_currency="GBP",
                 to_currency="JPY",
@@ -170,11 +179,11 @@ class TestMCPServer:
                 specific_date="2025-06-01",
             )
         )
-        json_result: dict = json.loads(conversion_response[0].text)
-        print(f"Conversion response: {json_result}")
-        assert isinstance(
-            json_result["converted_amount"], float
-        ), "Expected float value for converted amount"
-        assert (
-            json_result["converted_amount"] > 100.0
-        ), "The exchange rate for GBP to JPY should be greater than 1.0"
+        json_result: dict = json.loads(response[0].text)
+        print(f"{test_method} response: {json_result}")
+        assert isinstance(json_result["converted_amount"], float), (
+            "Expected float value for converted amount"
+        )
+        assert json_result["converted_amount"] > 100.0, (
+            "The exchange rate for GBP to JPY should be greater than 1.0"
+        )
