@@ -4,14 +4,23 @@ except ImportError:  # Graceful fallback if IceCream isn't installed.
     ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
 
 
+import json
 from dotenv import load_dotenv
 
 from fastmcp import Client
 
 from importlib.metadata import metadata
 
+from mcp.types import TextContent
+
 import os
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import BaseModel, Field
+
+SPACE_STRING = " "
+TRUE_VALUES_LIST = ["true", "1", "yes", "on", "yes", "y", "t"]
+FALSE_VALUES_LIST = ["false", "0", "no", "off", "n", "f"]
 
 
 class EnvironmentVariables:
@@ -28,6 +37,9 @@ class EnvironmentVariables:
     MCP_SERVER_TRANSPORT = "MCP_SERVER_TRANSPORT"
     DEFAULT__MCP_SERVER_TRANSPORT = "streamable-http"
     ALLOWED__MCP_SERVER_TRANSPORT = ["stdio", "sse", "streamable-http"]
+
+    MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE = "MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE"
+    DEFAULT__MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE = True
 
     FRANKFURTER_API_URL = "FRANKFURTER_API_URL"
     DEFAULT__FRANKFURTER_API_URL = "https://api.frankfurter.dev/v1"
@@ -49,9 +61,41 @@ class AppMetadata:
 
 package_metadata = metadata(AppMetadata.PACKAGE_NAME)
 
-SPACE_STRING = " "
-TRUE_VALUES_LIST = ["true", "1", "yes", "on", "yes", "y", "t"]
-FALSE_VALUES_LIST = ["false", "0", "no", "off", "n", "f"]
+
+class ResponseMetadata(BaseModel):
+    """
+    Metadata for the response.
+    """
+
+    package: Annotated[str, Field(description="The package name and version.")]
+    api_url: Annotated[
+        str, Field(description="The URL of the API used for the conversion.")
+    ]
+
+
+class CurrencyConversionResponse(BaseModel):
+    """
+    Response model for currency conversion.
+    """
+
+    from_currency: Annotated[str, Field(description="The currency to convert from.")]
+    to_currency: Annotated[str, Field(description="The currency to convert to.")]
+    amount: Annotated[
+        float, Field(description="The amount (of the source currency) to convert.")
+    ]
+    converted_amount: Annotated[
+        float, Field(description="The converted amount (of the target currency).")
+    ]
+    exchange_rate: Annotated[
+        float, Field(description="The exchange rate used for the conversion.")
+    ]
+    rate_date: Annotated[
+        str,
+        Field(
+            description="The date, ISO format, of the exchange rate used for the conversion."
+        ),
+    ]
+
 
 load_dotenv()
 
@@ -166,3 +210,38 @@ def get_nonstdio_mcp_client() -> Client:
         timeout=60,
     )
     return mcp_client
+
+
+def get_text_content(
+    data: Any,
+    include_metadata: bool = parse_env(
+        var_name=EnvironmentVariables.MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE,
+        default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE,
+        type_cast=bool,
+    ),
+) -> TextContent:
+    """
+    Convert data to TextContent format.
+
+    Args:
+        data (Any): The data to convert.
+        include_metadata (bool): Whether to include metadata in the TextContent.
+
+    Returns:
+        TextContent: The converted TextContent object.
+    """
+    literal_text = "text"
+    if isinstance(data, TextContent):
+        return data
+    elif isinstance(data, str):
+        text_content = TextContent(type=literal_text, text=str(data))
+    elif isinstance(data, dict) or isinstance(data, list):
+        text_content = TextContent(type=literal_text, text=json.dumps(data))
+    elif isinstance(data, BaseModel):
+        text_content = TextContent(type=literal_text, text=data.model_dump_json())
+    if include_metadata:
+        text_content.meta = ResponseMetadata(
+            package=f"{AppMetadata.PACKAGE_NAME} {package_metadata["Version"]}",
+            api_url=frankfurter_api_url,
+        )
+    return text_content

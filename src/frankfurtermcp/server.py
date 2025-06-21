@@ -11,7 +11,12 @@ from fastmcp import FastMCP, Context
 
 from pydantic import Field
 from rich import print as print
-from frankfurtermcp.common import EnvironmentVariables, parse_env
+from frankfurtermcp.common import (
+    CurrencyConversionResponse,
+    EnvironmentVariables,
+    get_text_content,
+    parse_env,
+)
 
 from frankfurtermcp.common import package_metadata, frankfurter_api_url
 
@@ -74,7 +79,7 @@ def get_supported_currencies(ctx: Context) -> list[dict]:
             )
             result = client.get(f"{frankfurter_api_url}/currencies").json()
             client.close()
-            return result
+            return get_text_content(data=result)
     except httpx.RequestError as e:
         raise ValueError(
             f"Failed to fetch supported currencies from {frankfurter_api_url}: {e}"
@@ -190,10 +195,11 @@ def get_latest_exchange_rates(
     ctx.debug(
         f"Fetching latest exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
-    return _get_latest_exchange_rates(
+    result = _get_latest_exchange_rates(
         base_currency=base_currency,
         symbols=symbols,
     )
+    return get_text_content(data=result)
 
 
 @app.tool(
@@ -235,13 +241,15 @@ def convert_currency_latest(
             f"Exchange rate for {from_currency} to {to_currency} not found."
         )
     converted_amount = amount * float(rate)
-    return {
-        "from_currency": from_currency,
-        "to_currency": to_currency,
-        "amount": amount,
-        "converted_amount": converted_amount,
-        "exchange_rate": rate,
-    }
+    result = CurrencyConversionResponse(
+        from_currency=from_currency,
+        to_currency=to_currency,
+        amount=amount,
+        converted_amount=converted_amount,
+        exchange_rate=rate,
+        rate_date=latest_rates["date"],
+    )
+    return get_text_content(data=result)
 
 
 @app.tool(
@@ -293,13 +301,14 @@ def get_historical_exchange_rates(
     ctx.debug(
         f"Fetching historical exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
-    return _get_historical_exchange_rates(
+    result = _get_historical_exchange_rates(
         specific_date=specific_date,
         start_date=start_date,
         end_date=end_date,
         base_currency=base_currency,
         symbols=symbols,
     )
+    return get_text_content(data=result)
 
 
 @app.tool(
@@ -350,14 +359,15 @@ def convert_currency_specific_date(
             f"Exchange rate for {from_currency} to {to_currency} not found."
         )
     converted_amount = amount * float(rate)
-    return {
-        "from_currency": from_currency,
-        "to_currency": to_currency,
-        "amount": amount,
-        "converted_amount": converted_amount,
-        "exchange_rate": rate,
-        "rate_date": date_specific_rates["date"],
-    }
+    result = CurrencyConversionResponse(
+        from_currency=from_currency,
+        to_currency=to_currency,
+        amount=amount,
+        converted_amount=converted_amount,
+        exchange_rate=rate,
+        rate_date=date_specific_rates["date"],
+    )
+    return get_text_content(data=result)
 
 
 def main():

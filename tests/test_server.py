@@ -8,6 +8,8 @@ from frankfurtermcp.server import main as mcp_server_composition
 from frankfurtermcp.common import get_nonstdio_mcp_client
 import pytest
 
+from frankfurtermcp.common import ic
+
 
 @pytest.fixture(scope="module")
 def mcp_client():
@@ -63,6 +65,7 @@ class TestMCPServer:
         async with mcp_client:
             result = await mcp_client.call_tool(tool_name, arguments=kwargs)
             await mcp_client.close()
+        ic(result)
         return result
 
     def test_get_supported_currencies(self, mcp_client):
@@ -86,7 +89,7 @@ class TestMCPServer:
         """
         Test the convert_currency_latest function to ensure it returns a list of supported currencies.
         """
-        conversion_metadata = asyncio.run(
+        conversion_response = asyncio.run(
             self.call_tool(
                 tool_name="convert_currency_latest",
                 mcp_client=mcp_client,
@@ -95,8 +98,8 @@ class TestMCPServer:
                 amount=100.0,
             )
         )
-        json_result: dict = json.loads(conversion_metadata[0].text)
-        print(f"Conversion metadata: {json_result}")
+        json_result: dict = json.loads(conversion_response[0].text)
+        print(f"Conversion response: {json_result}")
         assert isinstance(
             json_result["converted_amount"], float
         ), "Expected float value for converted amount"
@@ -157,7 +160,7 @@ class TestMCPServer:
         """
         Test the convert_currency_specific_date function to ensure it returns a list of supported currencies.
         """
-        conversion_metadata = asyncio.run(
+        conversion_response = asyncio.run(
             self.call_tool(
                 tool_name="convert_currency_specific_date",
                 mcp_client=mcp_client,
@@ -167,8 +170,8 @@ class TestMCPServer:
                 specific_date="2025-06-01",
             )
         )
-        json_result: dict = json.loads(conversion_metadata[0].text)
-        print(f"Conversion metadata: {json_result}")
+        json_result: dict = json.loads(conversion_response[0].text)
+        print(f"Conversion response: {json_result}")
         assert isinstance(
             json_result["converted_amount"], float
         ), "Expected float value for converted amount"
