@@ -239,9 +239,14 @@ def get_text_content(
         text_content = TextContent(type=literal_text, text=json.dumps(data))
     elif isinstance(data, BaseModel):
         text_content = TextContent(type=literal_text, text=data.model_dump_json())
+    else:
+        raise TypeError(
+            f"Unsupported data type: {type(data).__name__}. "
+            "Only str, dict, list, and BaseModel types can be wrapped as TextContent."
+        )
     if include_metadata:
         text_content.meta = ResponseMetadata(
-            package=f"{AppMetadata.PACKAGE_NAME} {package_metadata["Version"]}",
+            package=f"{AppMetadata.PACKAGE_NAME} {package_metadata['Version']}",
             api_url=frankfurter_api_url,
         )
     return text_content
