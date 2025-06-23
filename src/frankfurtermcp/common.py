@@ -11,6 +11,7 @@ from fastmcp import Client
 
 from importlib.metadata import metadata
 
+import httpx
 from mcp.types import TextContent
 
 import os
@@ -58,6 +59,8 @@ class AppMetadata:
 
     PACKAGE_NAME = "frankfurtermcp"
 
+    TEXT_CONTENT_META_PREFIX = "frankfurtermcp."
+
 
 package_metadata = metadata(AppMetadata.PACKAGE_NAME)
 
@@ -70,6 +73,15 @@ class ResponseMetadata(BaseModel):
     package: Annotated[str, Field(description="The package name and version.")]
     api_url: Annotated[
         str, Field(description="The URL of the API used for the conversion.")
+    ]
+    api_status_code: Annotated[
+        int, Field(description="The HTTP status code of the response.")
+    ]
+    api_bytes_downloaded: Annotated[
+        int, Field(description="The number of bytes downloaded in the HTTP response.")
+    ]
+    api_elapsed_time: Annotated[
+        int, Field(description="The elapsed time for the API request in microseconds.")
     ]
 
 
@@ -214,6 +226,7 @@ def get_nonstdio_mcp_client() -> Client:
 
 def get_text_content(
     data: Any,
+    http_response: httpx.Response,
     include_metadata: bool = parse_env(
         var_name=EnvironmentVariables.MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE,
         default_value=EnvironmentVariables.DEFAULT__MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE,
@@ -232,8 +245,9 @@ def get_text_content(
     """
     literal_text = "text"
     if isinstance(data, TextContent):
-        return data
-    elif isinstance(data, str):
+        # do nothing yet
+        pass
+    elif isinstance(data, (str, int, float, type(None))):
         text_content = TextContent(type=literal_text, text=str(data))
     elif isinstance(data, dict) or isinstance(data, list):
         text_content = TextContent(type=literal_text, text=json.dumps(data))
@@ -242,11 +256,14 @@ def get_text_content(
     else:
         raise TypeError(
             f"Unsupported data type: {type(data).__name__}. "
-            "Only str, dict, list, and BaseModel types can be wrapped as TextContent."
+            "Only primitive types, dict, list, and Pydantic BaseModel types can be wrapped as TextContent."
         )
     if include_metadata:
         text_content.meta = ResponseMetadata(
             package=f"{AppMetadata.PACKAGE_NAME} {package_metadata['Version']}",
             api_url=frankfurter_api_url,
+            api_status_code=http_response.status_code,
+            api_bytes_downloaded=http_response.num_bytes_downloaded,
+            api_elapsed_time=http_response.elapsed.microseconds,
         )
     return text_content

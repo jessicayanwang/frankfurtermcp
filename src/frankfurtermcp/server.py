@@ -77,9 +77,10 @@ def get_supported_currencies(ctx: Context) -> list[dict]:
             ctx.debug(
                 f"Fetching supported currencies from Frankfurter API at {frankfurter_api_url}"
             )
-            result = client.get(f"{frankfurter_api_url}/currencies").json()
+            http_response = client.get(f"{frankfurter_api_url}/currencies")
+            result = http_response.json()
             client.close()
-            return get_text_content(data=result)
+            return get_text_content(data=result, http_response=http_response)
     except httpx.RequestError as e:
         raise ValueError(
             f"Failed to fetch supported currencies from {frankfurter_api_url}: {e}"
@@ -88,9 +89,7 @@ def get_supported_currencies(ctx: Context) -> list[dict]:
         raise ValueError(f"Failed to parse response from {frankfurter_api_url}: {e}")
 
 
-def _get_latest_exchange_rates(
-    base_currency: str = None, symbols: list[str] = None
-) -> dict:
+def _get_latest_exchange_rates(base_currency: str = None, symbols: list[str] = None):
     """
     Internal function to get the latest exchange rates.
     This is a helper function for the main tool.
@@ -102,12 +101,13 @@ def _get_latest_exchange_rates(
         if symbols:
             params["symbols"] = ",".join(symbols)
         with _obtain_httpx_client() as client:
-            result = client.get(
+            http_response = client.get(
                 f"{frankfurter_api_url}/latest",
                 params=params,
-            ).json()
+            )
+            result = http_response.json()
             client.close()
-            return result
+            return result, http_response
     except httpx.RequestError as e:
         raise ValueError(
             f"Failed to fetch latest exchange rates from {frankfurter_api_url}: {e}"
@@ -149,12 +149,13 @@ def _get_historical_exchange_rates(
             )
 
         with _obtain_httpx_client() as client:
-            result = client.get(
+            http_response = client.get(
                 frankfurter_url,
                 params=params,
-            ).json()
+            )
+            result = http_response.json()
             client.close()
-            return result
+            return result, http_response
     except httpx.RequestError as e:
         raise ValueError(
             f"Failed to fetch historical exchange rates from {frankfurter_api_url}: {e}"
@@ -195,11 +196,11 @@ def get_latest_exchange_rates(
     ctx.debug(
         f"Fetching latest exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
-    result = _get_latest_exchange_rates(
+    result, http_response = _get_latest_exchange_rates(
         base_currency=base_currency,
         symbols=symbols,
     )
-    return get_text_content(data=result)
+    return get_text_content(data=result, http_response=http_response)
 
 
 @app.tool(
@@ -226,7 +227,7 @@ def convert_currency_latest(
     ctx.debug(
         f"Obtaining latest exchange rates for {from_currency} to {to_currency} from Frankfurter API at {frankfurter_api_url}"
     )
-    latest_rates = _get_latest_exchange_rates(
+    latest_rates, http_response = _get_latest_exchange_rates(
         base_currency=from_currency,
         symbols=[to_currency],
     )
@@ -249,7 +250,7 @@ def convert_currency_latest(
         exchange_rate=rate,
         rate_date=latest_rates["date"],
     )
-    return get_text_content(data=result)
+    return get_text_content(data=result, http_response=http_response)
 
 
 @app.tool(
@@ -301,14 +302,14 @@ def get_historical_exchange_rates(
     ctx.debug(
         f"Fetching historical exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
-    result = _get_historical_exchange_rates(
+    result, http_response = _get_historical_exchange_rates(
         specific_date=specific_date,
         start_date=start_date,
         end_date=end_date,
         base_currency=base_currency,
         symbols=symbols,
     )
-    return get_text_content(data=result)
+    return get_text_content(data=result, http_response=http_response)
 
 
 @app.tool(
@@ -341,7 +342,7 @@ def convert_currency_specific_date(
     ctx.debug(
         f"Obtaining historical exchange rates for {from_currency} to {to_currency} on {specific_date} from Frankfurter API at {frankfurter_api_url}"
     )
-    date_specific_rates = _get_historical_exchange_rates(
+    date_specific_rates, http_response = _get_historical_exchange_rates(
         specific_date=specific_date,
         base_currency=from_currency,
         symbols=[to_currency],
@@ -367,7 +368,7 @@ def convert_currency_specific_date(
         exchange_rate=rate,
         rate_date=date_specific_rates["date"],
     )
-    return get_text_content(data=result)
+    return get_text_content(data=result, http_response=http_response)
 
 
 def main():
