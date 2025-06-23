@@ -1,7 +1,7 @@
 [project]
 name = "frankfurtermcp"
-version = "0.2.5"
-description = "A MCP server for the Frankfurter API for currency exchange rates."
+version = "0.2.6"
+description = "A MCP server for currency exchange rates and currency conversion using the Frankfurter API."
 readme = "README.md"
 license = "MIT"
 authors = [
