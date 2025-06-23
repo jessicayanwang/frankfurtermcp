@@ -67,21 +67,22 @@ package_metadata = metadata(AppMetadata.PACKAGE_NAME)
 
 class ResponseMetadata(BaseModel):
     """
-    Metadata for the response.
+    Metadata for the TextContent response.
     """
 
-    package: Annotated[str, Field(description="The package name and version.")]
+    version: Annotated[str, Field(description="The version of the package.")]
     api_url: Annotated[
-        str, Field(description="The URL of the API used for the conversion.")
+        str,
+        Field(description="The URL of the Frankfurter API used for the call."),
     ]
     api_status_code: Annotated[
-        int, Field(description="The HTTP status code of the response.")
+        int, Field(description="The HTTP status code of the API response.")
     ]
     api_bytes_downloaded: Annotated[
-        int, Field(description="The number of bytes downloaded in the HTTP response.")
+        int, Field(description="The number of bytes downloaded in the API response.")
     ]
     api_elapsed_time: Annotated[
-        int, Field(description="The elapsed time for the API request in microseconds.")
+        int, Field(description="The elapsed time for the API call in microseconds.")
     ]
 
 
@@ -259,11 +260,12 @@ def get_text_content(
             "Only primitive types, dict, list, and Pydantic BaseModel types can be wrapped as TextContent."
         )
     if include_metadata:
-        text_content.meta = ResponseMetadata(
-            package=f"{AppMetadata.PACKAGE_NAME} {package_metadata['Version']}",
+        text_content.meta = text_content.meta if hasattr(text_content, "meta") else {}
+        text_content.meta[AppMetadata.PACKAGE_NAME] = ResponseMetadata(
+            version=package_metadata["Version"],
             api_url=frankfurter_api_url,
             api_status_code=http_response.status_code,
             api_bytes_downloaded=http_response.num_bytes_downloaded,
             api_elapsed_time=http_response.elapsed.microseconds,
-        )
+        ).model_dump()
     return text_content

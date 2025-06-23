@@ -67,7 +67,7 @@ class TestMCPServer:
             await mcp_client.close()
         for r in result:
             # Log experimental metadata from TextContent responses
-            if isinstance(r, TextContent) and r.meta is not None:
+            if isinstance(r, TextContent) and hasattr(r, "meta"):
                 print(f"{tool_name} response metadata: {r.meta}")
         return result
 
