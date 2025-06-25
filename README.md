@@ -110,7 +110,46 @@ The following table lists the names of the tools as exposed by the FrankfurterMC
 
 The required and optional arguments for each tool are not listed in the following table for brevity but are available to the MCP client over the protocol.
 
-If you want to see the detailed schema for a particular tool, you can do so using the `tools-info` commmand from the command line interface. The command line interface is available as the script `cli`. You can invoke its help to see the available commands as follows.
+## Client access
+
+The following subsections explain ways for a client to connect and test the FrankfurterMCP server.
+
+### The official visual inspector
+
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is an _official_ Model Context Protocol tool that can be used by developers to test and debug MCP servers. This is the most comprehensive way to explore the MCP server.
+
+To use it, you must have Node.js installed. The best way to install and manage `node` as well as packages such as the MCP Inspector is to use the [Node Version Manager (or, `nvm`)](https://github.com/nvm-sh/nvm). Once you have `nvm` installed, you can install and use the latest Long Term Release version of `node` by executing the following.
+
+```bash
+nvm install --lts
+nvm use --lts
+```
+
+Following that (install and) run the MCP Inspector by executing the following in the _WD_.
+
+```bash
+npx @modelcontextprotocol/inspector uvx frankfurtermcp \
+    -e MCP_SERVER_TRANSPORT=stdio
+```
+
+This will create a local URL at port 6274 with an authentication token, which you can copy and browse to on your browser. Once on the MCP Inspector UI, press _Connect_ to connect to the MCP server. Thereafter, you can explore the tools available on the server.
+
+The server entry to run with `stdio` transport that you can use with systems such as Cursor, Visual Studio Code, and so on is as follows.
+
+```json
+{
+    "command": "uvx",
+    "args": [
+        "frankfurtermcp"
+    ],
+    "env": {
+        "MCP_SERVER_TRANSPORT": "stdio"
+    }
+}
+```
+
+### FrankfurterMCP command-line interface (CLI)
+You may also use the CLI provided with FrankfurterMCP to explore the tools of the MCP server. For example, to see the detailed schema for a particular tool, you can do so using the `tools-info` commmand from the command line interface. The command line interface is available as the script `cli`. You can invoke its help to see the available commands as follows.
 
 ```bash
 uv run cli --help
