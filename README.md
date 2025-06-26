@@ -78,14 +78,14 @@ The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http
 
 There is one Dockerfile provided in this repository.
 
- - `Dockerfile` for using the latest version, which can contain your edits to the code if you do make edits.
+ - `local.dockerfile` for using the latest version, which can contain your edits to the code if you do make edits.
 
 To build the image, create the container and start it, run the following in _WD_. _Choose shorter names for the image and container if you prefer._
 
 If you change the port to anything other than 8000 in `.env.template`, _do remember to change the port number references in the following command_. Instead of passing all the environment variables using the `--env-file` option, you can also pass individual environment variables using the `-e` option.
 
 ```bash
-docker build -t frankfurtermcp .
+docker build -t frankfurtermcp -f local.dockerfile .
 docker create -p 8000:8000/tcp --env-file .env.template --expose 8000 --name frankfurtermcp-container frankfurtermcp
 docker start frankfurtermcp-container
 ```
