@@ -248,7 +248,7 @@ def get_text_content(
     if isinstance(data, TextContent):
         # do nothing yet
         pass
-    elif isinstance(data, (str, int, float, type(None))):
+    elif isinstance(data, (str, int, float, complex, bool, type(None))):
         text_content = TextContent(type=literal_text, text=str(data))
     elif isinstance(data, dict) or isinstance(data, list):
         text_content = TextContent(type=literal_text, text=json.dumps(data))
@@ -257,7 +257,7 @@ def get_text_content(
     else:
         raise TypeError(
             f"Unsupported data type: {type(data).__name__}. "
-            "Only primitive types, dict, list, and Pydantic BaseModel types can be wrapped as TextContent."
+            "Only str, int, float, complex, bool, dict, list, and Pydantic BaseModel types are supported for wrapping as TextContent."
         )
     if include_metadata:
         text_content.meta = text_content.meta if hasattr(text_content, "meta") else {}

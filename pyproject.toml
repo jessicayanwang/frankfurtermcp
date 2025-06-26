@@ -2,8 +2,9 @@
 name = "frankfurtermcp"
 version = "0.2.8"
 description = "A MCP server for currency exchange rates and currency conversion using the Frankfurter API."
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 license = "MIT"
+license-files = ["LICEN[CS]E*"]
 authors = [
     { name = "Anirban Basu", email = "anirbanbasu@users.noreply.github.com" }
 ]
