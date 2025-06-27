@@ -57,7 +57,7 @@ pip install frankfurtermcp
 python -m frankfurtermcp.server
 ```
 
-## Usage (self-hosted server using `uv`)
+## Usage (self-hosted server and `stdio` using `uv`)
 
 Copy the `.env.template` file to a `.env` file in the _WD_, to modify the aforementioned environment variables, if you want to use anything other than the default settings. Or, on your shell, you can export the environment variables that you wish to modify.
 
@@ -74,6 +74,8 @@ If you want to run it without `uv`, assuming that the appropriate virtual enviro
 ```
 
 The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport. To exit the server, use the Ctrl+C key combination.
+
+If you want to run Frankfurter MCP with `stdio` transport and the default parameters, execute `uv run frankfurtermcp` without copying the `.env.template` file to `.env`.
 
 ## Usage (self-hosted server using Docker)
 
@@ -97,6 +99,13 @@ Upon successful build and container start, the MCP server will be available over
 ## Usage (dynamic mounting with FastMCP)
 
 To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/), check the file [`src/frankfurtermcp/composition.py`](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py).
+
+## Usage (cloud hosted options)
+
+The currently available cloud hosted options are as follows.
+ 
+ - Glama.AI: https://glama.ai/mcp/servers/@anirbanbasu/frankfurtermcp
+ - Smithery.AI: https://smithery.ai/server/@anirbanbasu/frankfurtermcp/
 
 ## List of available tools
 
