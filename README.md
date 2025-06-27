@@ -1,5 +1,6 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=3776ab&labelColor=e4e4e4)](https://www.python.org/downloads/release/python-3120/) [![pytest](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/anirbanbasu/frankfurtermcp/actions/workflows/uv-pytest.yml) [![PyPI](https://img.shields.io/pypi/v/frankfurtermcp?label=pypi%20package)](https://pypi.org/project/frankfurtermcp/#history)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/frankfurtermcp?label=pypi%20downloads)](https://pypi.org/project/frankfurtermcp/) [![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/c6527bdb-9b60-430d-9ed6-cb3c8b9a2b54)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/frankfurtermcp?label=pypi%20downloads)](https://pypi.org/project/frankfurtermcp/) 
+[![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/c6527bdb-9b60-430d-9ed6-cb3c8b9a2b54) [![smithery badge](https://smithery.ai/badge/@anirbanbasu/frankfurtermcp)](https://smithery.ai/server/@anirbanbasu/frankfurtermcp)
 
 # Frankfurter MCP
 
@@ -37,11 +38,11 @@ The underlying HTTP client also respects some environment variables, as document
 
 | Variable |  [Default value] and description   |
 |--------------|----------------|
-| `HTTPX_TIMEOUT` | [5.0] The time for the underlying HTTP client to wait, in seconds, for a response. |
+| `HTTPX_TIMEOUT` | [5.0] The time for the underlying HTTP client to wait, in seconds, for a response from the Frankfurter API. |
 | `HTTPX_VERIFY_SSL` | [True] This variable can be set to False to turn off SSL certificate verification, if, for instance, you are using a proxy server with a self-signed certificate. However, setting this to False _is advised against_: instead, use the `SSL_CERT_FILE` and `SSL_CERT_DIR` variables to properly configure self-signed certificates. |
 | `FAST_MCP_HOST` | [0.0.0.0] This variable specifies which host the MCP server must bind to unless the server transport (see below) is set to `stdio`. |
 | `FAST_MCP_PORT` | [8000] This variable specifies which port the MCP server must listen on unless the server transport (see below) is set to `stdio`. |
-| `MCP_SERVER_TRANSPORT` | [streamable-http] The acceptable options are `stdio`, `sse` or `streamable-http`. Given the use-case of running this MCP server as a remotely accessible endpoint, there is no real reason to choose `stdio`. |
+| `MCP_SERVER_TRANSPORT` | [stdio] The acceptable options are `stdio`, `sse` or `streamable-http`. However, in the `.env.template`, the default value is set to `streamable-http`. |
 | `MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE` | [True] An _experimental feature_ to include additional metadata to the MCP type `TextContent` that wraps the response data from each tool call. The additional metadata, for example, will include (as of June 21, 2025) the API URL of the Frankfurter server that is used to obtain the responses. |
 | `FRANKFURTER_API_URL` | [https://api.frankfurter.dev/v1] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
 
@@ -79,6 +80,7 @@ The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http
 There is one Dockerfile provided in this repository.
 
  - `local.dockerfile` for using the latest version, which can contain your edits to the code if you do make edits.
+ - `smithery.dockerfile` for deploying to [Smithery AI](https://smithery.ai/), which you do not have to use.
 
 To build the image, create the container and start it, run the following in _WD_. _Choose shorter names for the image and container if you prefer._
 
@@ -128,23 +130,32 @@ nvm use --lts
 Following that (install and) run the MCP Inspector by executing the following in the _WD_.
 
 ```bash
-npx @modelcontextprotocol/inspector uvx frankfurtermcp \
-    -e MCP_SERVER_TRANSPORT=stdio
+npx @modelcontextprotocol/inspector uv run frankfurtermcp
 ```
 
 This will create a local URL at port 6274 with an authentication token, which you can copy and browse to on your browser. Once on the MCP Inspector UI, press _Connect_ to connect to the MCP server. Thereafter, you can explore the tools available on the server.
 
-The server entry to run with `stdio` transport that you can use with systems such as Cursor, Visual Studio Code, and so on is as follows.
+The server entry to run with `stdio` transport that you can use with systems such as Claude Desktop, Visual Studio Code, and so on is as follows.
 
 ```json
 {
-    "command": "uvx",
+    "command": "uv",
     "args": [
+        "run",
         "frankfurtermcp"
-    ],
-    "env": {
-        "MCP_SERVER_TRANSPORT": "stdio"
-    }
+    ]
+}
+```
+
+Instead of having `frankfurtermcp` as the last item in the list of `args`, you may need to specify the full path to the script, e.g., _WD_`/.venv/bin/frankfurtermcp`. Likewise, instead of using `uv`, you could also have the following JSON configuration with the path properly substituted for `python3.12`, for instance such as _WD_`/.venv/bin/python3.12`. 
+
+```json
+{
+    "command": "python3.12",
+    "args": [
+        "-m",
+        "frankfurtermcp.server"
+    ]
 }
 ```
 
@@ -159,7 +170,7 @@ This will produce an output similar to the screenshot below.
 
 ![cli-help-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-help.png "FrankfurterMCP CLI help")
 
-Before calling the `tools-info` command, you **MUST** have the server running in `streamable-http` or `sse` transport mode, preferably locally, e.g., by invoking `uv run frankfurtermcp`. A successful call of the `tools-info` command will generate an output similar to the screenshot shown below.
+Before calling the `tools-info` command, you **MUST** have the server running in `streamable-http` or `sse` transport mode, preferably locally, e.g., by invoking `MCP_SERVER_TRANSPORT=streamable-http uv run frankfurtermcp`. A successful call of the `tools-info` command will generate an output similar to the screenshot shown below.
 
 ![cli-tools-info-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-tools-info.png "FrankfurterMCP CLI tools-info")
 
@@ -180,10 +191,10 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 To run the provided test cases, execute the following. Add the flag `--capture=tee-sys` to the command to display further console output.
 
-_Note that for the tests to succeed, the environment variable `MCP_SERVER_TRANSPORT` must be set to either `sse` or `streamable-http`, or not set at all, in which case it will default to `streamable-http`_.
+_Note that for the tests to succeed, the environment variable `MCP_SERVER_TRANSPORT` must be set to either `sse` or `streamable-http`. If not set, it will default to `stdio` and the tests will fail_.
 
 ```bash
-uv run --group test pytest tests/
+MCP_SERVER_TRANSPORT=streamable-http uv run --group test pytest tests/
 ```
 
 ## License
