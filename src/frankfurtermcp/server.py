@@ -269,24 +269,6 @@ async def convert_currency_latest(
 )
 async def get_historical_exchange_rates(
     ctx: Context,
-    specific_date: Annotated[
-        str,
-        Field(
-            description="The specific date for which the historical rates are requested in the YYYY-MM-DD format."
-        ),
-    ] = None,
-    start_date: Annotated[
-        str,
-        Field(
-            description="The start date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format."
-        ),
-    ] = None,
-    end_date: Annotated[
-        str,
-        Field(
-            description="The end date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format."
-        ),
-    ] = None,
     base_currency: Annotated[
         str,
         Field(description="A base currency code for which rates are to be requested."),
@@ -295,6 +277,27 @@ async def get_historical_exchange_rates(
         List[str],
         Field(
             description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
+        ),
+    ] = None,
+    specific_date: Annotated[
+        str,
+        Field(
+            default=None,
+            description="The specific date for which the historical rates are requested in the YYYY-MM-DD format.",
+        ),
+    ] = None,
+    start_date: Annotated[
+        str,
+        Field(
+            default=None,
+            description="The start date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format.",
+        ),
+    ] = None,
+    end_date: Annotated[
+        str,
+        Field(
+            default=None,
+            description="The end date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format.",
         ),
     ] = None,
 ) -> dict:
