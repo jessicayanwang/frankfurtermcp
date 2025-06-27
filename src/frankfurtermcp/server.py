@@ -224,6 +224,11 @@ async def convert_currency_latest(
     Converts an amount from one currency to another using the latest exchange rates.
     The from_currency and to_currency parameters should be 3-character currency codes.
     """
+    if from_currency.lower() == to_currency.lower():
+        # If the source and target currencies are the same, no conversion is needed
+        raise ValueError(
+            f"Source currency '{from_currency}' and target currency '{to_currency}' are the same. No conversion needed."
+        )
     await ctx.info(
         f"Obtaining latest exchange rates for {from_currency} to {to_currency} from Frankfurter API at {frankfurter_api_url}"
     )
@@ -339,6 +344,11 @@ async def convert_currency_specific_date(
     Convert an amount from one currency to another using the exchange rates for a specific date.
     The from_currency and to_currency parameters should be 3-character currency codes.
     """
+    if from_currency.lower() == to_currency.lower():
+        # If the source and target currencies are the same, no conversion is needed
+        raise ValueError(
+            f"Source currency '{from_currency}' and target currency '{to_currency}' are the same. No conversion needed."
+        )
     await ctx.info(
         f"Obtaining historical exchange rates for {from_currency} to {to_currency} on {specific_date} from Frankfurter API at {frankfurter_api_url}"
     )
