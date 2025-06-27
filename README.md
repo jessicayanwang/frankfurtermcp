@@ -105,7 +105,7 @@ To see how to use the MCP server by mounting it dynamically with [FastMCP](https
 The currently available cloud hosted options are as follows.
  
  - Glama.AI: https://glama.ai/mcp/servers/@anirbanbasu/frankfurtermcp
- - Smithery.AI: https://smithery.ai/server/@anirbanbasu/frankfurtermcp/
+ - Smithery.AI: https://smithery.ai/server/@anirbanbasu/frankfurtermcp
 
 ## List of available tools
 
