@@ -6,19 +6,9 @@
 
 [Frankfurter](https://frankfurter.dev/) is a useful API for latest currency exchange rates, historical data, or time series published by sources such as the European Central Bank. Should you have to access the Frankfurter API as tools for language model agents exposed over the Model Context Protocol (MCP), Frankfurter MCP is what you need.
 
-## Project status
+# Installation
 
-Following is a table of some updates regarding the project status. Note that these do not correspond to specific commits or milestones.
-
-| Date     |  Status   |  Notes or observations   |
-|----------|:-------------:|----------------------|
-| June 13, 2025 |  active |  Added LlamaIndex tool listing for demonstration only. (The `--all-extras` flag is necessary to install LlamaIndex, which is not installed by default.) |
-| June 9, 2025 |  active |  Added containerisation, support for self-signed, proxies. |
-| June 8, 2025 |  active |  Added dynamic composition. |
-| June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API. |
-| June 7, 2025 |  active |  Project started.  |
-
-## Installation
+_If your objective is to use the tools available on this MCP server, please refer to the usage > client sub-section below_.
 
 The directory where you clone this repository will be referred to as the _working directory_ or _WD_ hereinafter.
 
@@ -46,20 +36,20 @@ The underlying HTTP client also respects some environment variables, as document
 | `MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE` | [True] An _experimental feature_ to include additional metadata to the MCP type `TextContent` that wraps the response data from each tool call. The additional metadata, for example, will include (as of June 21, 2025) the API URL of the Frankfurter server that is used to obtain the responses. |
 | `FRANKFURTER_API_URL` | [https://api.frankfurter.dev/v1] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
 
-## Usage (with `pip`)
+# Usage
 
-Add this package from PyPI using `pip` in a virtual environment (possibly managed by `conda` or `pyenv`) and then start the server by running the following.
+The following sub-sections illustrate how to run the Frankfurter MCP as a server and how to access it from MCP clients.
 
-Add a `.env` file with the contents of the `.env.template` file if you wish to modify the default values of the aforementioned environment variables. Or, on your shell, you can export the environment variables that you wish to modify.
+## Server
+While running the server, you have the choice to use `stdio` transport or HTTP options (`sse` or the newer `streamable-http`).
 
-```bash
-pip install frankfurtermcp
-python -m frankfurtermcp.server
-```
+Using default settings and `MCP_SERVER_TRANSPORT` set to `sse` or `streamable-http`, the MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport.
 
-## Usage (self-hosted server and `stdio` using `uv`)
+If you want to run Frankfurter MCP with `stdio` transport and the default parameters, execute the commands below without using the `.env.template` file.
 
-Copy the `.env.template` file to a `.env` file in the _WD_, to modify the aforementioned environment variables, if you want to use anything other than the default settings. Or, on your shell, you can export the environment variables that you wish to modify.
+### Server with `uv`
+
+_Optional_: Copy the `.env.template` file to a `.env` file in the _WD_, to modify the aforementioned environment variables, if you want to use anything other than the default settings. Or, on your shell, you can export the environment variables that you wish to modify.
 
 Run the following in the _WD_ to start the MCP server.
 
@@ -67,21 +57,22 @@ Run the following in the _WD_ to start the MCP server.
 uv run frankfurtermcp
 ```
 
-If you want to run it without `uv`, assuming that the appropriate virtual environment has been created in the `.venv` within the _WD_, you can start the server calling the following.
+### Server with `pip` from PyPI package
+
+Add this package from PyPI using `pip` in a virtual environment (possibly managed by `conda` or `pyenv`) and then start the server by running the following.
+
+_Optional_: Add a `.env` file with the contents of the `.env.template` file if you wish to modify the default values of the aforementioned environment variables. Or, on your shell, you can export the environment variables that you wish to modify.
 
 ```bash
-./.venv/bin/python -m frankfurtermcp.server
+pip install frankfurtermcp
+python -m frankfurtermcp.server
 ```
 
-The MCP endpoint will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport. To exit the server, use the Ctrl+C key combination.
+### Server using Docker
 
-If you want to run Frankfurter MCP with `stdio` transport and the default parameters, execute `uv run frankfurtermcp` without copying the `.env.template` file to `.env`.
+There are two Dockerfiles provided in this repository.
 
-## Usage (self-hosted server using Docker)
-
-There is one Dockerfile provided in this repository.
-
- - `local.dockerfile` for using the latest version, which can contain your edits to the code if you do make edits.
+ - `local.dockerfile` for containerising the Frankfurter MCP server.
  - `smithery.dockerfile` for deploying to [Smithery AI](https://smithery.ai/), which you do not have to use.
 
 To build the image, create the container and start it, run the following in _WD_. _Choose shorter names for the image and container if you prefer._
@@ -96,36 +87,23 @@ docker start frankfurtermcp-container
 
 Upon successful build and container start, the MCP server will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport.
 
-## Usage (dynamic mounting with FastMCP)
+### Dynamic mounting with FastMCP
 
-To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/), check the file [`src/frankfurtermcp/composition.py`](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py).
+To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/) as part of your own MCP server, check the file [`src/frankfurtermcp/composition.py`](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py).
 
-## Usage (cloud hosted options)
+### Cloud hosted servers
 
 The currently available cloud hosted options are as follows.
  
  - Glama.AI: https://glama.ai/mcp/servers/@anirbanbasu/frankfurtermcp
  - Smithery.AI: https://smithery.ai/server/@anirbanbasu/frankfurtermcp
 
-## List of available tools
-
-The following table lists the names of the tools as exposed by the FrankfurterMCP server. It does not list the tool(s) exposed through [the composition example](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py). The descriptions shown here are for documentation purposes, which may differ from the actual descriptions exposed over the model context protocol.
-
-| Name         |  Description   |
-|--------------|----------------|
-| `get_supported_currencies` | Get a list of currencies supported by the Frankfurter API. |
-| `get_latest_exchange_rates` | Get latest exchange rates in specific currencies for a given base currency. |
-| `convert_currency_latest` | Convert an amount from one currency to another using the latest exchange rates. |
-| `get_historical_exchange_rates` | Get historical exchange rates for a specific date or date range in specific currencies for a given base currency. |
-| `convert_currency_specific_date` | Convert an amount from one currency to another using the exchange rates for a specific date. |
-
-The required and optional arguments for each tool are not listed in the following table for brevity but are available to the MCP client over the protocol.
 
 ## Client access
 
-The following subsections explain ways for a client to connect and test the FrankfurterMCP server.
+This sub-section explains ways for a client to connect and test the FrankfurterMCP server. A command-line interface (CLI) is also provided for testing, which is explained in a later sub-section.
 
-### The official visual inspector
+### The official MCP visual inspector
 
 The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is an _official_ Model Context Protocol tool that can be used by developers to test and debug MCP servers. This is the most comprehensive way to explore the MCP server.
 
@@ -143,6 +121,8 @@ npx @modelcontextprotocol/inspector uv run frankfurtermcp
 ```
 
 This will create a local URL at port 6274 with an authentication token, which you can copy and browse to on your browser. Once on the MCP Inspector UI, press _Connect_ to connect to the MCP server. Thereafter, you can explore the tools available on the server.
+
+### Claude Desktop, Visual Studio, and so on
 
 The server entry to run with `stdio` transport that you can use with systems such as Claude Desktop, Visual Studio Code, and so on is as follows.
 
@@ -168,7 +148,21 @@ Instead of having `frankfurtermcp` as the last item in the list of `args`, you m
 }
 ```
 
-### FrankfurterMCP command-line interface (CLI)
+# List of available tools
+
+The following table lists the names of the tools as exposed by the FrankfurterMCP server. It does not list the tool(s) exposed through [the composition example](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py). The descriptions shown here are for documentation purposes, which may differ from the actual descriptions exposed over the model context protocol.
+
+| Name         |  Description   |
+|--------------|----------------|
+| `get_supported_currencies` | Get a list of currencies supported by the Frankfurter API. |
+| `get_latest_exchange_rates` | Get latest exchange rates in specific currencies for a given base currency. |
+| `convert_currency_latest` | Convert an amount from one currency to another using the latest exchange rates. |
+| `get_historical_exchange_rates` | Get historical exchange rates for a specific date or date range in specific currencies for a given base currency. |
+| `convert_currency_specific_date` | Convert an amount from one currency to another using the exchange rates for a specific date. |
+
+The required and optional arguments for each tool are not listed in the following table for brevity but are available to the MCP client over the protocol.
+
+## FrankfurterMCP command-line interface (CLI)
 You may also use the CLI provided with FrankfurterMCP to explore the tools of the MCP server. For example, to see the detailed schema for a particular tool, you can do so using the `tools-info` commmand from the command line interface. The command line interface is available as the script `cli`. You can invoke its help to see the available commands as follows.
 
 ```bash
@@ -187,7 +181,7 @@ Alternative to the `tools-info` command, you can also run call the `llamaindex-t
 
 ![cli-llamaindex-tools-list-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-llamaindex-tools-list.png "FrankfurterMCP CLI llamaindex-tools-list")
 
-## Contributing
+# Contributing
 
 Install [`pre-commit`](https://pre-commit.com/) for Git and [`ruff`](https://docs.astral.sh/ruff/installation/). Then enable `pre-commit` by running the following in the _WD_.
 
@@ -196,7 +190,7 @@ pre-commit install
 ```
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-## Testing
+# Testing
 
 To run the provided test cases, execute the following. Add the flag `--capture=tee-sys` to the command to display further console output.
 
@@ -206,6 +200,19 @@ _Note that for the tests to succeed, the environment variable `MCP_SERVER_TRANSP
 MCP_SERVER_TRANSPORT=streamable-http uv run --group test pytest tests/
 ```
 
-## License
+# License
 
 [MIT](https://choosealicense.com/licenses/mit/).
+
+# Project status
+
+Following is a table of some updates regarding the project status. Note that these do not correspond to specific commits or milestones.
+
+| Date     |  Status   |  Notes or observations   |
+|----------|:-------------:|----------------------|
+| June 27, 2025 |  active |  Successful remote deployments on Glama.AI and Smithery.AI. |
+| June 13, 2025 |  active |  Added LlamaIndex tool listing for demonstration only. (The `--all-extras` flag is necessary to install LlamaIndex, which is not installed by default.) |
+| June 9, 2025 |  active |  Added containerisation, support for self-signed, proxies. |
+| June 8, 2025 |  active |  Added dynamic composition. |
+| June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API. |
+| June 7, 2025 |  active |  Project started.  |
