@@ -68,13 +68,13 @@ def _obtain_httpx_client() -> httpx.Client:
         "openWorldHint": True,
     },
 )
-def get_supported_currencies(ctx: Context) -> list[dict]:
+async def get_supported_currencies(ctx: Context) -> list[dict]:
     """
     Returns a list of supported currencies.
     """
     try:
         with _obtain_httpx_client() as client:
-            ctx.debug(
+            await ctx.info(
                 f"Fetching supported currencies from Frankfurter API at {frankfurter_api_url}"
             )
             http_response = client.get(f"{frankfurter_api_url}/currencies")
@@ -173,7 +173,7 @@ def _get_historical_exchange_rates(
         "openWorldHint": True,
     },
 )
-def get_latest_exchange_rates(
+async def get_latest_exchange_rates(
     ctx: Context,
     base_currency: Annotated[
         str,
@@ -193,7 +193,7 @@ def get_latest_exchange_rates(
     to specific currencies. If symbols is not provided, all
     available currencies will be returned.
     """
-    ctx.debug(
+    await ctx.info(
         f"Fetching latest exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
     result, http_response = _get_latest_exchange_rates(
@@ -212,7 +212,7 @@ def get_latest_exchange_rates(
         "openWorldHint": True,
     },
 )
-def convert_currency_latest(
+async def convert_currency_latest(
     ctx: Context,
     amount: Annotated[
         float, Field(description="The amount in the source currency to convert.")
@@ -224,14 +224,14 @@ def convert_currency_latest(
     Converts an amount from one currency to another using the latest exchange rates.
     The from_currency and to_currency parameters should be 3-character currency codes.
     """
-    ctx.debug(
+    await ctx.info(
         f"Obtaining latest exchange rates for {from_currency} to {to_currency} from Frankfurter API at {frankfurter_api_url}"
     )
     latest_rates, http_response = _get_latest_exchange_rates(
         base_currency=from_currency,
         symbols=[to_currency],
     )
-    ctx.debug(f"Converting {amount} of {from_currency} to {to_currency}")
+    await ctx.info(f"Converting {amount} of {from_currency} to {to_currency}")
     if not latest_rates or "rates" not in latest_rates:
         raise ValueError(
             f"Could not retrieve exchange rates for {from_currency} to {to_currency}."
@@ -262,7 +262,7 @@ def convert_currency_latest(
         "openWorldHint": True,
     },
 )
-def get_historical_exchange_rates(
+async def get_historical_exchange_rates(
     ctx: Context,
     specific_date: Annotated[
         str,
@@ -299,7 +299,7 @@ def get_historical_exchange_rates(
     The symbols parameter can be used to filter the results to specific currencies.
     If symbols is not provided, all available currencies will be returned.
     """
-    ctx.debug(
+    await ctx.info(
         f"Fetching historical exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
     result, http_response = _get_historical_exchange_rates(
@@ -321,7 +321,7 @@ def get_historical_exchange_rates(
         "openWorldHint": True,
     },
 )
-def convert_currency_specific_date(
+async def convert_currency_specific_date(
     ctx: Context,
     amount: Annotated[
         float, Field(description="The amount in the source currency to convert.")
@@ -339,7 +339,7 @@ def convert_currency_specific_date(
     Convert an amount from one currency to another using the exchange rates for a specific date.
     The from_currency and to_currency parameters should be 3-character currency codes.
     """
-    ctx.debug(
+    await ctx.info(
         f"Obtaining historical exchange rates for {from_currency} to {to_currency} on {specific_date} from Frankfurter API at {frankfurter_api_url}"
     )
     date_specific_rates, http_response = _get_historical_exchange_rates(
@@ -347,7 +347,7 @@ def convert_currency_specific_date(
         base_currency=from_currency,
         symbols=[to_currency],
     )
-    ctx.debug(
+    await ctx.info(
         f"Converting {amount} of {from_currency} to {to_currency} on {specific_date}"
     )
     if not date_specific_rates or "rates" not in date_specific_rates:
