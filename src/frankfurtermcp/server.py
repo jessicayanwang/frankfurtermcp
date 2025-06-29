@@ -1,7 +1,8 @@
+from datetime import date
 import os
 import signal
 import sys
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 import certifi
 import httpx
 import ssl
@@ -60,9 +61,7 @@ def _obtain_httpx_client() -> httpx.Client:
 
 
 @app.tool(
-    description="Get supported currencies",
     tags=["currency-rates", "supported-currencies"],
-    name="get_supported_currencies",
     annotations={
         "readOnlyHint": True,
         "openWorldHint": True,
@@ -70,7 +69,7 @@ def _obtain_httpx_client() -> httpx.Client:
 )
 async def get_supported_currencies(ctx: Context) -> list[dict]:
     """
-    Returns a list of supported currencies.
+    Returns a list of three-letter currency codes for the supported currencies.
     """
     try:
         with _obtain_httpx_client() as client:
@@ -165,9 +164,7 @@ def _get_historical_exchange_rates(
 
 
 @app.tool(
-    description="Get latest exchange rates in specific currencies for a given base currency",
     tags=["currency-rates", "exchange-rates"],
-    name="get_latest_exchange_rates",
     annotations={
         "readOnlyHint": True,
         "openWorldHint": True,
@@ -178,20 +175,18 @@ async def get_latest_exchange_rates(
     base_currency: Annotated[
         str,
         Field(description="A base currency code for which rates are to be requested."),
-    ] = None,
+    ],
     symbols: Annotated[
-        List[str],
+        Optional[List[str]],
         Field(
             description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
         ),
     ] = None,
 ) -> dict:
     """
-    Returns the latest exchange rates for a specific currency.
-    If no base currency is provided, it defaults to EUR. The
-    symbols parameter can be used to filter the results
-    to specific currencies. If symbols is not provided, all
-    available currencies will be returned.
+    Returns the latest exchange rates for specific currencies. The
+    symbols can be used to filter the results to specific currencies.
+    If symbols is not provided, all supported currencies will be returned.
     """
     await ctx.info(
         f"Fetching latest exchange rates from Frankfurter API at {frankfurter_api_url}"
@@ -204,9 +199,7 @@ async def get_latest_exchange_rates(
 
 
 @app.tool(
-    description="Convert an amount from one currency to another using the latest exchange rates",
     tags=["currency-rates", "currency-conversion"],
-    name="convert_currency_latest",
     annotations={
         "readOnlyHint": True,
         "openWorldHint": True,
@@ -222,7 +215,6 @@ async def convert_currency_latest(
 ) -> dict:
     """
     Converts an amount from one currency to another using the latest exchange rates.
-    The from_currency and to_currency parameters should be 3-character currency codes.
     """
     if from_currency.lower() == to_currency.lower():
         # If the source and target currencies are the same, no conversion is needed
@@ -259,9 +251,7 @@ async def convert_currency_latest(
 
 
 @app.tool(
-    description="Get historical exchange rates for a specific date or date range in specific currencies for a given base currency",
     tags=["currency-rates", "historical-exchange-rates"],
-    name="get_historical_exchange_rates",
     annotations={
         "readOnlyHint": True,
         "openWorldHint": True,
@@ -272,29 +262,29 @@ async def get_historical_exchange_rates(
     base_currency: Annotated[
         str,
         Field(description="A base currency code for which rates are to be requested."),
-    ] = None,
+    ],
     symbols: Annotated[
-        List[str],
+        Optional[List[str]],
         Field(
             description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
         ),
     ] = None,
     specific_date: Annotated[
-        str,
+        Optional[date],
         Field(
             default=None,
             description="The specific date for which the historical rates are requested in the YYYY-MM-DD format.",
         ),
     ] = None,
     start_date: Annotated[
-        str,
+        Optional[date],
         Field(
             default=None,
             description="The start date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format.",
         ),
     ] = None,
     end_date: Annotated[
-        str,
+        Optional[date],
         Field(
             default=None,
             description="The end date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format.",
@@ -303,9 +293,11 @@ async def get_historical_exchange_rates(
 ) -> dict:
     """
     Returns historical exchange rates for a specific date or date range.
-    If no specific date is provided, it defaults to the latest available date.
-    The symbols parameter can be used to filter the results to specific currencies.
-    If symbols is not provided, all available currencies will be returned.
+    If the exchange rates for a specified date is not available, the rates available for
+    the closest date before the specified date will be provided.
+    Either a specific date, a start date, or a date range must be provided.
+    The symbols can be used to filter the results to specific currencies.
+    If symbols are not provided, all supported currencies will be returned.
     """
     await ctx.info(
         f"Fetching historical exchange rates from Frankfurter API at {frankfurter_api_url}"
@@ -317,13 +309,14 @@ async def get_historical_exchange_rates(
         base_currency=base_currency,
         symbols=symbols,
     )
+    await ctx.info(
+        f"Historical exchange rates fetched for {len(result.get('rates', []))} dates."
+    )
     return get_text_content(data=result, http_response=http_response)
 
 
 @app.tool(
-    description="Convert an amount from one currency to another using the exchange rates for a specific date",
     tags=["currency-rates", "currency-conversion", "historical-exchange-rates"],
-    name="convert_currency_specific_date",
     annotations={
         "readOnlyHint": True,
         "openWorldHint": True,
@@ -337,7 +330,7 @@ async def convert_currency_specific_date(
     from_currency: Annotated[str, Field(description="The source currency code.")],
     to_currency: Annotated[str, Field(description="The target currency code.")],
     specific_date: Annotated[
-        str,
+        date,
         Field(
             description="The specific date for which the conversion is requested in the YYYY-MM-DD format."
         ),
@@ -345,7 +338,8 @@ async def convert_currency_specific_date(
 ) -> dict:
     """
     Convert an amount from one currency to another using the exchange rates for a specific date.
-    The from_currency and to_currency parameters should be 3-character currency codes.
+    If there is no exchange rate available for the specific date, the rate for the closest available date before
+    the specified date will be used.
     """
     if from_currency.lower() == to_currency.lower():
         # If the source and target currencies are the same, no conversion is needed
