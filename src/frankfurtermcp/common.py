@@ -268,5 +268,4 @@ def get_text_content(
             api_bytes_downloaded=http_response.num_bytes_downloaded,
             api_elapsed_time=http_response.elapsed.microseconds,
         ).model_dump()
-    ic(text_content)
     return text_content
