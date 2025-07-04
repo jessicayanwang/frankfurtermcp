@@ -260,7 +260,7 @@ def get_text_content(
             "Only str, int, float, complex, bool, dict, list, and Pydantic BaseModel types are supported for wrapping as TextContent."
         )
     if include_metadata:
-        text_content.meta = text_content.meta if hasattr(text_content, "meta") else {}
+        text_content.meta = text_content.meta if hasattr(text_content, "_meta") else {}
         text_content.meta[AppMetadata.PACKAGE_NAME] = ResponseMetadata(
             version=package_metadata["Version"],
             api_url=frankfurter_api_url,
@@ -268,4 +268,5 @@ def get_text_content(
             api_bytes_downloaded=http_response.num_bytes_downloaded,
             api_elapsed_time=http_response.elapsed.microseconds,
         ).model_dump()
+    ic(text_content)
     return text_content

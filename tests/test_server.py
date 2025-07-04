@@ -65,7 +65,7 @@ class TestMCPServer:
         async with mcp_client:
             result = await mcp_client.call_tool(tool_name, arguments=kwargs)
             await mcp_client.close()
-        for r in result:
+        for r in result.content:
             # Log experimental metadata from TextContent responses
             if isinstance(r, TextContent) and hasattr(r, "meta"):
                 print(f"{tool_name} response metadata: {r.meta}")
@@ -82,7 +82,7 @@ class TestMCPServer:
                 mcp_client=mcp_client,
             )
         )
-        json_result: dict = json.loads(response[0].text)
+        json_result: dict = json.loads(response.content[0].text)
         print(f"{test_method} response: {json_result}")
         assert len(json_result.keys()) > 0, "Expected non-empty list of currencies"
         assert all(
@@ -103,7 +103,7 @@ class TestMCPServer:
                 amount=100.0,
             )
         )
-        json_result: dict = json.loads(response[0].text)
+        json_result: dict = json.loads(response.content[0].text)
         print(f"{test_method} response: {json_result}")
         assert isinstance(json_result["converted_amount"], float), (
             "Expected float value for converted amount"
@@ -125,7 +125,7 @@ class TestMCPServer:
                 symbols=["EUR", "GBP", "CHF", "NZD"],
             )
         )
-        json_result: dict = json.loads(response[0].text)
+        json_result: dict = json.loads(response.content[0].text)
         print(f"{test_method} response: {json_result}")
         assert len(json_result["rates"].keys()) > 0, (
             "Expected non-empty list of currency rates"
@@ -150,7 +150,7 @@ class TestMCPServer:
                 symbols=["EUR", "GBP", "CHF", "NZD"],
             )
         )
-        json_result: dict = json.loads(response[0].text)
+        json_result: dict = json.loads(response.content[0].text)
         print(f"{test_method} response: {json_result}")
         assert all(
             len(rates_for_date) > 0
@@ -179,7 +179,7 @@ class TestMCPServer:
                 specific_date="2025-06-01",
             )
         )
-        json_result: dict = json.loads(response[0].text)
+        json_result: dict = json.loads(response.content[0].text)
         print(f"{test_method} response: {json_result}")
         assert isinstance(json_result["converted_amount"], float), (
             "Expected float value for converted amount"

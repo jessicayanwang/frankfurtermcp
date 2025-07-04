@@ -67,7 +67,7 @@ def _obtain_httpx_client() -> httpx.Client:
         "openWorldHint": True,
     },
 )
-async def get_supported_currencies(ctx: Context) -> list[dict]:
+async def get_supported_currencies(ctx: Context):
     """
     Returns a list of three-letter currency codes for the supported currencies.
     """
@@ -121,7 +121,7 @@ def _get_historical_exchange_rates(
     end_date: str = None,
     base_currency: str = None,
     symbols: list[str] = None,
-) -> dict:
+):
     """
     Internal function to get historical exchange rates.
     This is a helper function for the main tool.
@@ -182,7 +182,7 @@ async def get_latest_exchange_rates(
             description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
         ),
     ] = None,
-) -> dict:
+):
     """
     Returns the latest exchange rates for specific currencies. The
     symbols can be used to filter the results to specific currencies.
@@ -212,7 +212,7 @@ async def convert_currency_latest(
     ],
     from_currency: Annotated[str, Field(description="The source currency code.")],
     to_currency: Annotated[str, Field(description="The target currency code.")],
-) -> dict:
+):
     """
     Converts an amount from one currency to another using the latest exchange rates.
     """
@@ -290,7 +290,7 @@ async def get_historical_exchange_rates(
             description="The end date, of a date range, for which the historical rates are requested in the YYYY-MM-DD format.",
         ),
     ] = None,
-) -> dict:
+):
     """
     Returns historical exchange rates for a specific date or date range.
     If the exchange rates for a specified date is not available, the rates available for
@@ -335,7 +335,7 @@ async def convert_currency_specific_date(
             description="The specific date for which the conversion is requested in the YYYY-MM-DD format."
         ),
     ],
-) -> dict:
+):
     """
     Convert an amount from one currency to another using the exchange rates for a specific date.
     If there is no exchange rate available for the specific date, the rate for the closest available date before
