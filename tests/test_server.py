@@ -137,7 +137,59 @@ class TestMCPServer:
 
     def test_get_historical_exchange_rates(self, mcp_client):
         """
-        Test the get_historical_exchange_rates function to ensure that it returns the list of latest rates with other currencies.
+        Test the get_historical_exchange_rates function to ensure that it returns the list of historical rates with other currencies.
+        """
+        test_method = "get_historical_exchange_rates"
+        response = asyncio.run(
+            self.call_tool(
+                tool_name=test_method,
+                mcp_client=mcp_client,
+                base_currency="JPY",
+                start_date="2025-06-01",
+                end_date="2025-06-19",
+                symbols=["EUR", "GBP", "CHF", "NZD"],
+            )
+        )
+        json_result: dict = json.loads(response.content[0].text)
+        print(f"{test_method} response: {json_result}")
+        assert all(
+            len(rates_for_date) > 0
+            for _, rates_for_date in json_result["rates"].items()
+        ), "Expected non-empty list of currency rates"
+        assert all(
+            (
+                (isinstance(code, str) and len(code) == 3)
+                for code in rates_for_date.keys()
+            )
+            for _, rates_for_date in json_result["rates"].items()
+        ), "All currency codes for exchange rates should be 3-character strings"
+
+    def test_get_latest_exchange_rates_for_single_currency(self, mcp_client):
+        """
+        Test the get_latest_exchange_rates function to ensure that it returns the latest rates for a single currency.
+        """
+        test_method = "get_latest_exchange_rates"
+        response = asyncio.run(
+            self.call_tool(
+                tool_name=test_method,
+                mcp_client=mcp_client,
+                base_currency="JPY",
+                symbols="GBP",
+            )
+        )
+        json_result: dict = json.loads(response.content[0].text)
+        print(f"{test_method} response: {json_result}")
+        assert len(json_result["rates"].keys()) > 0, (
+            "Expected non-empty list of currency rates"
+        )
+        assert all(
+            (isinstance(code, str) and len(code) == 3)
+            for code in json_result["rates"].keys()
+        ), "All currency codes for exchange rates should be 3-character strings"
+
+    def test_get_historical_exchange_rates_for_a_single_currency(self, mcp_client):
+        """
+        Test the get_historical_exchange_rates function to ensure that it returns the historical rates for a single currency.
         """
         test_method = "get_historical_exchange_rates"
         response = asyncio.run(

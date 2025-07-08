@@ -177,9 +177,9 @@ async def get_latest_exchange_rates(
         Field(description="A base currency code for which rates are to be requested."),
     ],
     symbols: Annotated[
-        Optional[List[str]],
+        Optional[List[str] | str],
         Field(
-            description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
+            description="A list of target currency codes for which rates against the base currency will be provided. If not provided, all supported currencies will be shown."
         ),
     ] = None,
 ):
@@ -188,6 +188,9 @@ async def get_latest_exchange_rates(
     symbols can be used to filter the results to specific currencies.
     If symbols is not provided, all supported currencies will be returned.
     """
+    # Some LLMs make this mistake of passing just one currency but not as a list!
+    if type(symbols) is str:
+        symbols = [symbols]
     await ctx.info(
         f"Fetching latest exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
@@ -264,9 +267,9 @@ async def get_historical_exchange_rates(
         Field(description="A base currency code for which rates are to be requested."),
     ],
     symbols: Annotated[
-        Optional[List[str]],
+        Optional[List[str] | str],
         Field(
-            description="A list of target currency codes for which rates against the base currency will be provided. Do not provide it to request all supported currencies."
+            description="A list of target currency codes for which rates against the base currency will be provided. If not provided, all supported currencies will be shown."
         ),
     ] = None,
     specific_date: Annotated[
@@ -302,6 +305,9 @@ async def get_historical_exchange_rates(
     await ctx.info(
         f"Fetching historical exchange rates from Frankfurter API at {frankfurter_api_url}"
     )
+    # Some LLMs make this mistake of passing just one currency but not as a list!
+    if type(symbols) is str:
+        symbols = [symbols]
     result, http_response = _get_historical_exchange_rates(
         specific_date=specific_date,
         start_date=start_date,
