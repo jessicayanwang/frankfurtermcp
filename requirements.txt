@@ -34,13 +34,13 @@ colorama==0.4.6
     #   icecream
 cryptography==45.0.5
     # via authlib
-cyclopts==3.22.2
+cyclopts==3.22.5
     # via fastmcp
 dnspython==2.7.0
     # via email-validator
 docstring-parser==0.17.0 ; python_full_version < '4.0'
     # via cyclopts
-docutils==0.21.2
+docutils==0.22
     # via rich-rst
 email-validator==2.2.0
     # via pydantic
@@ -74,7 +74,7 @@ jsonschema-specifications==2025.4.1
     # via jsonschema
 markdown-it-py==3.0.0
     # via rich
-mcp==1.12.0
+mcp==1.12.3
     # via fastmcp
 mdurl==0.1.2
     # via markdown-it-py
@@ -111,7 +111,7 @@ referencing==0.36.2
     # via
     #   jsonschema
     #   jsonschema-specifications
-rich==14.0.0
+rich==14.1.0
     # via
     #   cyclopts
     #   fastmcp
@@ -127,7 +127,7 @@ shellingham==1.5.4
     # via typer
 sniffio==1.3.1
     # via anyio
-sse-starlette==2.4.1
+sse-starlette==3.0.2
     # via mcp
 starlette==0.47.2
     # via mcp
