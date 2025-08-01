@@ -46,6 +46,7 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "icecream>=2.1.4",
+    "pre-commit>=4.2.0",
 ]
 test = [
     "pytest>=8.4.0",
