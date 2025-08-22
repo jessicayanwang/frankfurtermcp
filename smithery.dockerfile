@@ -31,14 +31,14 @@ COPY --from=uv --chown=app:app /app/.venv /app/.venv
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-ARG FASTMCP_HOST="0.0.0.0"
-ARG MCP_SERVER_TRANSPORT="streamable-http"
+# ARG FASTMCP_HOST="0.0.0.0"
+# ARG MCP_SERVER_TRANSPORT="streamable-http"
 
-RUN echo "MCP_SERVER_TRANSPORT=${MCP_SERVER_TRANSPORT}" > /app/.env && echo "FASTMCP_HOST=${FASTMCP_HOST}" >> /app/.env
+# RUN echo "MCP_SERVER_TRANSPORT=${MCP_SERVER_TRANSPORT}" > /app/.env && echo "FASTMCP_HOST=${FASTMCP_HOST}" >> /app/.env
 
 # Set the correct environment variables as required by Smithery proxy
 # EXPOSE ${PORT}
 
 # See how PORT is obtained dynamically: https://github.com/anirbanbasu/frankfurtermcp/issues/26#issuecomment-3213947048
 ENTRYPOINT ["sh", "-c"]
-CMD ["FASTMCP_PORT=${PORT:-8081} python3 -m frankfurtermcp.server"]
+CMD ["MCP_SERVER_TRANSPORT=streamable-http FASTMCP_HOST=0.0.0.0 FASTMCP_PORT=${PORT:-8081} python3 -m frankfurtermcp.server"]
