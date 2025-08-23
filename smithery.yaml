@@ -7,5 +7,3 @@ startCommand:
   type: "http"  # Changed from stdio
   configSchema: {}
   exampleConfig: {}
-env:
-  PORT: 8081
