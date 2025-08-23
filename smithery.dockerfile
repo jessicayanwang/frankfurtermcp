@@ -24,16 +24,22 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.12.5-slim-bookworm
 
+RUN useradd app
+
 WORKDIR /app
 
 COPY --from=uv --chown=app:app /app/.venv /app/.venv
+RUN chown -R app:app /app
 
+USER app
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Build-time argument for the port, defaulting to 8081
+ARG PORT=8081
 ENV FASTMCP_HOST="0.0.0.0"
 ENV MCP_SERVER_TRANSPORT="streamable-http"
-ENV FASTMCP_PORT=${PORT:-8081}
+ENV FASTMCP_PORT=${PORT}
 
 RUN echo "MCP_SERVER_TRANSPORT=${MCP_SERVER_TRANSPORT}" > /app/.env && echo "FASTMCP_HOST=${FASTMCP_HOST}" >> /app/.env && echo "FASTMCP_PORT=${FASTMCP_PORT}" >> /app/.env
 
