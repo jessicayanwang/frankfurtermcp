@@ -36,7 +36,7 @@ USER app
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Build-time argument for the port, defaulting to 8081
-ARG PORT=8081
+# ARG PORT=8081
 ENV FASTMCP_HOST="0.0.0.0"
 ENV MCP_SERVER_TRANSPORT="streamable-http"
 ENV FASTMCP_PORT=${PORT}
