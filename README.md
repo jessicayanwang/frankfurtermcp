@@ -21,7 +21,7 @@ uv sync --no-dev
 
 ## Environment variables
 
-Following is a list of environment variables that can be used to configure the application. A template of environment variables is provided in the file `.env.template`.
+Following is a list of environment variables that can be used to configure the application. A template of environment variables is provided in the file `.env.template`. _Note that the default values listed in the table below are not always the same as those in the `.env.template` file_.
 
 The following environment variables can be specified, prefixed with `FASTMCP_`: `HOST`, `PORT`, `DEBUG` and `LOG_LEVEL`. See [global configuration options](https://gofastmcp.com/servers/server#global-settings) for FastMCP. Note that `on_duplicate_` prefixed options specified as environment variables _will be ignored_.
 
@@ -29,12 +29,13 @@ The underlying HTTP client also respects some environment variables, as document
 
 | Variable |  [Default value] and description   |
 |--------------|----------------|
+| `LOG_LEVEL` | [INFO] The level for logging. Changing this level also affects the log output of other dependent libraries that may use the same environment variable. See valid values at [Python logging documentation](https://docs.python.org/3/library/logging.html#logging-levels). |
 | `HTTPX_TIMEOUT` | [5.0] The time for the underlying HTTP client to wait, in seconds, for a response from the Frankfurter API. |
 | `HTTPX_VERIFY_SSL` | [True] This variable can be set to False to turn off SSL certificate verification, if, for instance, you are using a proxy server with a self-signed certificate. However, setting this to False _is advised against_: instead, use the `SSL_CERT_FILE` and `SSL_CERT_DIR` variables to properly configure self-signed certificates. |
-| `FAST_MCP_HOST` | [0.0.0.0] This variable specifies which host the MCP server must bind to unless the server transport (see below) is set to `stdio`. |
+| `FAST_MCP_HOST` | [localhost] This variable specifies which host the MCP server must bind to unless the server transport (see below) is set to `stdio`. |
 | `FAST_MCP_PORT` | [8000] This variable specifies which port the MCP server must listen on unless the server transport (see below) is set to `stdio`. |
-| `MCP_SERVER_TRANSPORT` | [stdio] The acceptable options are `stdio`, `sse` or `streamable-http`. However, in the `.env.template`, the default value is set to `streamable-http`. |
-| `MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE` | [True] An _experimental feature_ to include additional metadata to the MCP type `TextContent` that wraps the response data from each tool call. The additional metadata, for example, will include (as of June 21, 2025) the API URL of the Frankfurter server that is used to obtain the responses. |
+| `MCP_SERVER_TRANSPORT` | [stdio] The acceptable options are `stdio`, `sse` or `streamable-http`. However, in the `.env.template`, the default value is set to `stdio`. |
+| `MCP_SERVER_INCLUDE_METADATA_IN_RESPONSE` | [True] This specifies if additional metadata will be included with the MCP type `TextContent` that wraps the response data from each tool call. The additional metadata, for example, will include the API URL of the Frankfurter server, amongst others, that is used to obtain the responses. |
 | `FRANKFURTER_API_URL` | [https://api.frankfurter.dev/v1] If you are [self-hosting the Frankfurter API](https://hub.docker.com/r/lineofflight/frankfurter), you should change this to the API endpoint address of your deployment. |
 
 # Usage
@@ -60,7 +61,7 @@ uv run frankfurtermcp
 
 ### Server with `pip` from PyPI package
 
-Add this package from PyPI using `pip` in a virtual environment (possibly managed by `conda` or `pyenv`) and then start the server by running the following.
+Add this package from PyPI using `pip` in a virtual environment (possibly managed by `uv`, `pyenv` or `conda`) and then start the server by running the following.
 
 _Optional_: Add a `.env` file with the contents of the `.env.template` file if you wish to modify the default values of the aforementioned environment variables. Or, on your shell, you can export the environment variables that you wish to modify.
 
@@ -88,10 +89,6 @@ docker start frankfurtermcp-container
 
 Upon successful build and container start, the MCP server will be available over HTTP at [http://localhost:8000/sse](http://localhost:8000/sse) for the Server Sent Events (SSE) transport, or [http://localhost:8000/mcp](http://localhost:8000/mcp) for the streamable HTTP transport.
 
-### Dynamic mounting with FastMCP
-
-To see how to use the MCP server by mounting it dynamically with [FastMCP](https://gofastmcp.com/) as part of your own MCP server, check the file [`src/frankfurtermcp/composition.py`](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py).
-
 ### Cloud hosted servers
 
 The currently available cloud hosted options are as follows.
@@ -103,7 +100,7 @@ The currently available cloud hosted options are as follows.
 
 ## Client access
 
-This sub-section explains ways for a client to connect and test the FrankfurterMCP server. A command-line interface (CLI) is also provided for testing, which is explained in a later sub-section.
+This sub-section explains ways for a client to connect and test the FrankfurterMCP server.
 
 ### The official MCP visual inspector
 
@@ -150,9 +147,13 @@ Instead of having `frankfurtermcp` as the last item in the list of `args`, you m
 }
 ```
 
-# List of available tools
+# List of available MCP features
 
-The following table lists the names of the tools as exposed by the FrankfurterMCP server. It does not list the tool(s) exposed through [the composition example](https://github.com/anirbanbasu/frankfurtermcp/blob/master/src/frankfurtermcp/composition.py). The descriptions shown here are for documentation purposes, which may differ from the actual descriptions exposed over the model context protocol.
+FrankfurterMCP has the following MCP features.
+
+## Tools
+
+The following table lists the names of the tools as exposed by the FrankfurterMCP server. The descriptions shown here are for documentation purposes, which may differ from the actual descriptions exposed over the model context protocol.
 
 | Name         |  Description   |
 |--------------|----------------|
@@ -164,25 +165,6 @@ The following table lists the names of the tools as exposed by the FrankfurterMC
 
 The required and optional arguments for each tool are not listed in the following table for brevity but are available to the MCP client over the protocol.
 
-## FrankfurterMCP command-line interface (CLI)
-You may also use the CLI provided with FrankfurterMCP to explore the tools of the MCP server. For example, to see the detailed schema for a particular tool, you can do so using the `tools-info` commmand from the command line interface. The command line interface is available as the script `cli`. You can invoke its help to see the available commands as follows.
-
-```bash
-uv run cli --help
-```
-
-This will produce an output similar to the screenshot below.
-
-![cli-help-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-help.png "FrankfurterMCP CLI help")
-
-Before calling the `tools-info` command, you **MUST** have the server running in `streamable-http` or `sse` transport mode, preferably locally, e.g., by invoking `MCP_SERVER_TRANSPORT=streamable-http uv run frankfurtermcp`. A successful call of the `tools-info` command will generate an output similar to the screenshot shown below.
-
-![cli-tools-info-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-tools-info.png "FrankfurterMCP CLI tools-info")
-
-Alternative to the `tools-info` command, you can also run call the `llamaindex-tools-list` command to display the names of the tools without the respective function schemas. This functionality is provided only to optionally demonstrate that the LlamaIndex MCP client can read the tools list from this MCP server. In order for this to function, you must install LlamaIndex MCP client by calling `uv sync --extra opt`. The output of calling this command will look like the following.
-
-![cli-llamaindex-tools-list-screenshot](https://raw.githubusercontent.com/anirbanbasu/frankfurtermcp/master/screenshots/cli-llamaindex-tools-list.png "FrankfurterMCP CLI llamaindex-tools-list")
-
 # Contributing
 
 Install [`pre-commit`](https://pre-commit.com/) for Git and [`ruff`](https://docs.astral.sh/ruff/installation/). Then enable `pre-commit` by running the following in the _WD_.
@@ -192,14 +174,29 @@ pre-commit install
 ```
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-# Testing
+# Testing and coverage
 
 To run the provided test cases, execute the following. Add the flag `--capture=tee-sys` to the command to display further console output.
 
-_Note that for the tests to succeed, the environment variable `MCP_SERVER_TRANSPORT` must be set to either `sse` or `streamable-http`. If not set, it will default to `stdio` and the tests will fail_.
+```bash
+uv run --group test pytest tests/
+```
+
+There is a handy testing script _WD_`/run-tests.sh`, which will run all the tests and generate a coverage report as follows. It can also accept arguments and parameters to be passed to `pytest`, such as `-k` for filtering the tests to run. If all tests are run, the generated coverage report may look like the one below.
 
 ```bash
-MCP_SERVER_TRANSPORT=streamable-http uv run --group test pytest tests/
+Name                             Stmts   Miss  Cover
+----------------------------------------------------
+src/frankfurtermcp/__init__.py      10      0   100%
+src/frankfurtermcp/common.py        23      0   100%
+src/frankfurtermcp/mixin.py         52      4    92%
+src/frankfurtermcp/model.py         17      0   100%
+src/frankfurtermcp/server.py       111     20    82%
+tests/__init__.py                    0      0   100%
+tests/test_data_models.py           60      0   100%
+tests/test_server.py                71      0   100%
+----------------------------------------------------
+TOTAL                              344     24    93%
 ```
 
 # License
@@ -212,9 +209,7 @@ Following is a table of some updates regarding the project status. Note that the
 
 | Date     |  Status   |  Notes or observations   |
 |----------|:-------------:|----------------------|
+| September 6, 2025 |  active |  Code refactoring and cleanup. |
 | June 27, 2025 |  active |  Successful remote deployments on Glama.AI and Smithery.AI. |
-| June 13, 2025 |  active |  Added LlamaIndex tool listing for demonstration only. (The `--all-extras` flag is necessary to install LlamaIndex, which is not installed by default.) |
-| June 9, 2025 |  active |  Added containerisation, support for self-signed, proxies. |
-| June 8, 2025 |  active |  Added dynamic composition. |
-| June 7, 2025 |  active |  Added tools to cover all the functionalities of the Frankfurter API. |
-| June 7, 2025 |  active |  Project started.  |
+| June 9, 2025 |  active |  Added containerisation, support for self-signed proxies. |
+| June 7, 2025 |  active |  Project started. Added tools to cover all the functionalities of the Frankfurter API. |
