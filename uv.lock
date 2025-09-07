@@ -399,7 +399,7 @@ wheels = [
 
 [[package]]
 name = "frankfurtermcp"
-version = "0.3.5"
+version = "0.3.5.post0"
 source = { editable = "." }
 dependencies = [
     { name = "environs" },
