@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class TestMCPServer:
-    @classmethod
     @pytest.fixture(scope="class", autouse=True)
+    @classmethod
     def mcp_server(cls):
         """
         Fixture to register features in an MCP server.
@@ -21,8 +21,8 @@ class TestMCPServer:
         server_with_features = mcp_obj.register_features(server)
         return server_with_features
 
-    @classmethod
     @pytest.fixture(scope="class", autouse=True)
+    @classmethod
     def mcp_client(cls, mcp_server):
         """
         Fixture to create a client for the MCP server.
